@@ -1,0 +1,59 @@
+FUNCTION ZVAR_PRE_POPUP_CE_0CALMONTH_01.
+*"----------------------------------------------------------------------
+*"*"Local Interface:
+*"  IMPORTING
+*"     REFERENCE(I_STEP) TYPE  I
+*"     REFERENCE(I_VNAM) TYPE  RSZGLOBV-VNAM
+*"     REFERENCE(I_VARTYP) TYPE  RSZGLOBV-VARTYP
+*"     REFERENCE(I_IOBJNM) TYPE  RSZGLOBV-IOBJNM
+*"     REFERENCE(I_S_COB_PRO) TYPE  RSD_S_COB_PRO
+*"     REFERENCE(I_S_RKB1D) TYPE  RSR_S_RKB1D
+*"     REFERENCE(I_PERIV) TYPE  RRO01_S_RKB1F-PERIV
+*"     REFERENCE(I_T_VAR_RANGE) TYPE  RRS0_T_VAR_RANGE
+*"  EXPORTING
+*"     REFERENCE(C_T_RANGE) TYPE  RSR_T_RANGESID
+*"     REFERENCE(C_NO_SCREEN) TYPE  RS_BOOL
+*"     REFERENCE(C_CHECK_AGAIN) TYPE  RS_BOOL
+*"     REFERENCE(C_S_CUSTOMER) TYPE  RRO04_S_CUSTOMER
+*"----------------------------------------------------------------------
+
+
+*--------------------------------------------------------------------*
+* This Exit variable is intended to derive the first
+* calendar month of the fiscal year based on the
+* current date (system date)
+*--------------------------------------------------------------------*
+
+*OLD* DATA: L_S_VAR_RANGE TYPE RRRANGEEXIT.
+*OLD* DATA: ls_calmonth(6) type c.
+
+* Structure for the return range, Range of Months
+DATA: YearMonthRange TYPE RSR_S_RANGESID.
+
+DATA: CurrentDate TYPE sy-datum,
+      CurrentYear(4) TYPE c,
+      PreviousYear(4) TYPE c.
+
+  CurrentDate = sy-datum.             "Get current date from system date
+  CurrentYear(4) = CurrentDate(4).    "Derive current year from current date
+  PreviousYear(4) = CurrentYear(4) - 1.  "Offset current year by -1 to get previous year
+
+*Some kind of ABAP exit variable step mechanism?????
+    IF I_STEP = 1.
+*      "Find the first Calendar Year / Month based on Current System
+        IF CurrentDate+4(2) between '07' and '12'.                    "IF CurrentDate+4(2) between '01' and '06'.
+          CONCATENATE CurrentYear(4) '07' INTO YearMonthRange-low.
+        ELSE.                                                         "ELSEIF CurrentDate+4(2) between '07' and '12'.
+          CONCATENATE PreviousYear(4) '07' INTO YearMonthRange-low.
+        ENDIF.
+
+*Set properties of the variable output
+*      Included
+       YearMonthRange-sign = 'I'.
+*      Equal
+       YearMonthRange-opt = 'EQ'.
+    ENDIF.
+
+    "Collect the result into the result range --> c_t_range
+    APPEND YearMonthRange to c_t_range.
+ENDFUNCTION.
