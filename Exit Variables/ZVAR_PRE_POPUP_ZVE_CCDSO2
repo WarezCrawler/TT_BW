@@ -1,0 +1,77 @@
+FUNCTION ZVAR_PRE_POPUP_ZVE_CCDSO2.
+*"----------------------------------------------------------------------
+*"*"Local Interface:
+*"  IMPORTING
+*"     REFERENCE(I_VNAM) TYPE  RSZGLOBV-VNAM
+*"     REFERENCE(I_VARTYP) TYPE  RSZGLOBV-VARTYP
+*"     REFERENCE(I_IOBJNM) TYPE  RSZGLOBV-IOBJNM
+*"     REFERENCE(I_S_COB_PRO) TYPE  RSD_S_COB_PRO
+*"     REFERENCE(I_S_RKB1D) TYPE  RSR_S_RKB1D
+*"     REFERENCE(I_PERIV) TYPE  RRO01_S_RKB1F-PERIV
+*"     REFERENCE(I_T_VAR_RANGE) TYPE  RRS0_T_VAR_RANGE
+*"     REFERENCE(I_STEP) TYPE  I
+*"  EXPORTING
+*"     REFERENCE(C_T_RANGE) TYPE  RSR_T_RANGESID
+*"     REFERENCE(C_NO_SCREEN) TYPE  RS_BOOL
+*"     REFERENCE(C_CHECK_AGAIN) TYPE  RS_BOOL
+*"     REFERENCE(C_S_CUSTOMER) TYPE  RRO04_S_CUSTOMER
+*"  EXCEPTIONS
+*"      OTHERS
+*"----------------------------------------------------------------------
+*
+  TYPES: BEGIN OF ty_aut_by_cc
+       ,   username    TYPE /bi0/oiusername
+       ,   costcenter TYPE /bi0/oicostcenter
+       , END   OF ty_aut_by_cc
+       .
+
+  DATA: BEGIN OF tab
+      ,   s_auth_by_cc    TYPE SORTED TABLE   OF ty_aut_by_cc
+                          WITH UNIQUE KEY username
+                                          costcenter
+      ,   zat_d01         TYPE STANDARD TABLE OF /bic/azat_d0100
+      , END   OF tab
+      .
+  DATA: BEGIN OF wa
+      ,   auth_by_cc      TYPE ty_aut_by_cc
+      ,   range           TYPE rsr_s_rangesid
+      ,   i_range         TYPE rrs0_s_var_range
+      , END   OF wa
+      .
+
+  DATA: BEGIN OF v
+      ,   user  TYPE syuname
+      ,   cc    TYPE /bi0/oicostcenter
+      , END   OF v
+      .
+
+  CLEAR: tab, wa, v .
+
+*BREAK-POINT.
+  v-user = sy-uname .
+
+  IF tab-s_auth_by_cc[] IS INITIAL .
+*.. Get all CC
+    SELECT  *
+      INTO  TABLE tab-zat_d01
+      FROM /bic/azat_d0100
+      WHERE username = sy-uname .
+    "get unique records. if user has 2 records then take the first
+    "with CC
+    SORT tab-zat_d01 BY costcenter DESCENDING .
+    DELETE ADJACENT DUPLICATES FROM tab-zat_d01
+           COMPARING username costcenter .
+    MOVE-CORRESPONDING tab-zat_d01[] TO tab-s_auth_by_cc[] .
+  ENDIF .
+
+
+*.. Prepare Default Values
+  LOOP AT tab-s_auth_by_cc INTO wa-auth_by_cc .
+    wa-range-opt  = 'EQ' .
+    wa-range-sign = 'I' .
+
+    wa-range-low  = wa-auth_by_cc-costcenter .
+    APPEND wa-range TO c_t_range .
+  ENDLOOP .
+
+ENDFUNCTION.
