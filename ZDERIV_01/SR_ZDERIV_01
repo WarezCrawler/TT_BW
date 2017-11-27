@@ -1,0 +1,142 @@
+  METHOD start_routine.
+*=== Segments ===
+
+    FIELD-SYMBOLS:
+      <SOURCE_FIELDS>    TYPE _ty_s_SC_1.
+
+    DATA:
+      MONITOR_REC     TYPE rstmonitor.
+
+*$*$ begin of routine - insert your code only below this line        *-*
+... "insert your code here
+*--  fill table "MONITOR" with values of structure "MONITOR_REC"
+*-   to make monitor entries
+... "to cancel the update process
+*    raise exception type CX_RSROUT_ABORT.
+*DATA: wa_append type _ty_s_SC_1.
+
+
+
+*####################
+*### Old formulas from before start routine
+*IF( IS_INITIAL( /BIC/ZUPDSTAT ) OR /BIC/ZUPDSTAT = '0101', '0100',
+*SKIP_RECORD( ) )
+
+*L_TRIM( IF( IS_INITIAL( /BIC/ZSC_BT )
+*, IF( IS_INITIAL( /BIC/ZSC_P ),
+*R_TRIM( /BIC/ZSC_BA )
+*, R_TRIM( /BIC/ZSC_P ) )
+*, R_TRIM( /BIC/ZSC_BT ) )
+*)
+*####################
+
+*####################
+*### Dimensions in start routine
+*/BIC/ZDERIV_01
+*BILL_TYPE
+*PLANT
+*/BIC/ZFORG
+
+*/BIC/ZSMETHOD
+
+*/BIC/ZSC_BT
+*/BIC/ZSC_P
+*/BIC/ZSC_BA
+
+*/BIC/ZUPDSTAT
+*/BIC/ZMDSOURCE <-- DO NOT CHANGE!
+*####################
+
+.BREAK-POINT.
+
+*--- Purpose:
+*--- Derive Sales Channel based on logic where the assignment from
+*--- Billing Type, Plant and Business Area is evaluated in turn.
+*---
+*--- Finally the status is set to '0100' which is derivation finished
+*--- Only records with no status (#) which are new values, or
+*--- records set for reevaluation ('0101') are considered
+*---
+*--- Status Types
+*--- 0100 Derived
+*--- 0101 Reevaluate on next pass
+*--- 0110 manually "derived"
+
+*### Only run for "To be updated" ('0101') or never updated ('#')
+*records
+
+
+*¤¤¤¤¤¤¤¤¤¤¤¤¤
+* TEST AREA FOR PARAMETER VALUES
+*Declare local table for PARAMS values
+DATA: tblPARAMETERS TYPE STANDARD TABLE OF /BIC/APARAMS2.
+DATA: Process_Scope TYPE /BIC/APARAMS2.
+*DATA: PARAMETER TYPE /BIC/APARAMS2.
+
+SELECT * INTO TABLE tblPARAMETERS FROM /BIC/APARAMS2 WHERE TT_PARAMETER
+= 'ZDERIV_01'.
+
+*Get Process Scope from the parameter table
+READ TABLE tblPARAMETERS INTO Process_Scope
+           WITH KEY TT_PARAMETER = 'ZDERIV_01'
+                    TT_SUBPARAM  = 'PROCESS_SCOPE'.
+
+*LOOP AT tblPARAMETERS INTO PARAMETER.
+*do something
+*  .BREAK-POINT.
+*ENDLOOP.
+*¤¤¤¤¤¤¤¤¤¤¤¤¤
+
+
+IF Process_Scope-VALUEA = 'All'.
+*Do nothing => Process all members
+ELSEIF Process_Scope-VALUEA = 'Only-0100'.
+  DELETE SOURCE_PACKAGE  WHERE /BIC/ZUPDSTAT NE '0100'.
+ELSEIF Process_Scope-VALUEA = 'Only-0110'.
+  DELETE SOURCE_PACKAGE  WHERE /BIC/ZUPDSTAT NE '0110'.
+ELSE.
+  DELETE SOURCE_PACKAGE  WHERE /BIC/ZUPDSTAT NE '0101' AND /BIC/ZUPDSTAT
+  IS NOT INITIAL.
+ENDIF.
+
+*### Loop the remaining records to derive the sales channel
+LOOP AT SOURCE_PACKAGE ASSIGNING <SOURCE_FIELDS>.
+
+*IF <SOURCE_FIELDS>-/BIC/ZUPDSTAT NE '0101' AND
+*<SOURCE_FIELDS>-/BIC/ZUPDSTAT IS NOT INITIAL.
+*  DELETE SOURCE_PACKAGE.
+*  CONTINUE.
+*ENDIF.
+
+*### Derive Sales Channel from
+*### Billing Type --> Plant --> Business Area
+  IF  <SOURCE_FIELDS>-/BIC/ZSC_BT IS NOT INITIAL.
+    "# Billing Type
+    <SOURCE_FIELDS>-/BIC/ZSMETHOD = <SOURCE_FIELDS>-/BIC/ZSC_BT.
+  ELSEIF <SOURCE_FIELDS>-/BIC/ZSC_P IS NOT INITIAL.
+    "# Plant
+    <SOURCE_FIELDS>-/BIC/ZSMETHOD = <SOURCE_FIELDS>-/BIC/ZSC_P.
+  ELSEIF <SOURCE_FIELDS>-/BIC/ZSC_BA IS NOT INITIAL.
+    "# TT Business Area
+    <SOURCE_FIELDS>-/BIC/ZSMETHOD = <SOURCE_FIELDS>-/BIC/ZSC_BA.
+  ENDIF.
+
+*### If sales is POS (in the store) and the sales is marked as B2B, then
+*earmark it as POS_B2B
+  IF <SOURCE_FIELDS>-/BIC/ZSC_BA = 'POS' AND
+  <SOURCE_FIELDS>-/BIC/ZSMETHOD = 'B2B'.
+    <SOURCE_FIELDS>-/BIC/ZSMETHOD = 'POSB2B'.
+  ENDIF.
+
+*### Set the update status to Derived = '0100'
+  <SOURCE_FIELDS>-/BIC/ZUPDSTAT = '0100'.
+
+ENDLOOP.
+
+
+
+
+
+
+*$*$ end of routine - insert your code only before this line         *-*
+  ENDMETHOD.                    "start_routine
