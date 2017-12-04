@@ -1,3 +1,109 @@
+
+
+PROGRAM trans_routine.
+
+
+*---------------------------------------------------------------------*
+*       CLASS routine DEFINITION
+*---------------------------------------------------------------------*
+*
+*---------------------------------------------------------------------*
+CLASS lcl_transform DEFINITION.
+  PUBLIC SECTION.
+
+*  Attributs
+    DATA:
+      p_check_master_data_exist
+            TYPE RSODSOCHECKONLY READ-ONLY,
+*-    Instance for getting request runtime attributs;
+*     Available information: Refer to methods of
+*     interface 'if_rsbk_request_admintab_view'
+      p_r_request
+            TYPE REF TO if_rsbk_request_admintab_view READ-ONLY.
+
+  PRIVATE SECTION.
+
+    TYPE-POOLS: rsd, rstr.
+
+*   Rule specific types
+    TYPES:
+      BEGIN OF _ty_s_SC_1,
+*      InfoObject: ZDERIV_01 Derivation of Sales Channel.
+        /BIC/ZDERIV_01           TYPE /BIC/OIZDERIV_01,
+*      InfoObject: 0BILL_TYPE Billing Type.
+        BILL_TYPE           TYPE /BI0/OIBILL_TYPE,
+*      InfoObject: 0PLANT Site.
+        PLANT           TYPE /BI0/OIPLANT,
+*      InfoObject: ZFORG TT Business Area.
+        /BIC/ZFORG           TYPE /BIC/OIZFORG,
+*      InfoObject: ZSMETHOD Sales Channel.
+        /BIC/ZSMETHOD           TYPE /BIC/OIZSMETHOD,
+*      InfoObject: ZSC_BT Billing Type --> Sales Channel.
+        /BIC/ZSC_BT           TYPE /BIC/OIZSC_BT,
+*      InfoObject: ZSC_P Plant --> Sales Channel.
+        /BIC/ZSC_P           TYPE /BIC/OIZSC_P,
+*      InfoObject: ZSC_BA TT Business Area --> Sales Channel.
+        /BIC/ZSC_BA           TYPE /BIC/OIZSC_BA,
+*      InfoObject: ZUPDSTAT Update Status.
+        /BIC/ZUPDSTAT           TYPE /BIC/OIZUPDSTAT,
+*      InfoObject: ZMDSOURCE Master Data Source.
+        /BIC/ZMDSOURCE           TYPE /BIC/OIZMDSOURCE,
+*      Field: RECORD.
+        RECORD           TYPE RSARECORD,
+      END   OF _ty_s_SC_1.
+    TYPES:
+      _ty_t_SC_1        TYPE STANDARD TABLE OF _ty_s_SC_1
+                        WITH NON-UNIQUE DEFAULT KEY.
+
+*$*$ begin of global - insert your declaration only below this line  *-*
+... "insert your code here
+*$*$ end of global - insert your declaration only before this line   *-*
+
+    METHODS
+      start_routine
+        IMPORTING
+          request                  type rsrequest
+          datapackid               type rsdatapid
+          segid                    type rsbk_segid
+        EXPORTING
+          monitor                  type rstr_ty_t_monitors
+        CHANGING
+          SOURCE_PACKAGE              type _ty_t_SC_1
+        RAISING
+          cx_rsrout_abort
+          cx_rsbk_errorcount.
+    METHODS
+      inverse_start_routine
+        IMPORTING
+          i_th_fields_outbound         TYPE rstran_t_field_inv
+          I_R_SELSET_OUTBOUND          TYPE REF TO CL_RSMDS_SET
+          i_is_main_selection          TYPE rs_bool
+          i_r_selset_outbound_complete TYPE REF TO cl_rsmds_set
+          i_r_universe_inbound         TYPE REF TO CL_RSMDS_UNIVERSE
+        CHANGING
+          c_th_fields_inbound          TYPE rstran_t_field_inv
+          c_r_selset_inbound           TYPE REF TO CL_RSMDS_SET
+          c_exact                      TYPE rs_bool.
+ENDCLASS.                    "routine DEFINITION
+
+*$*$ begin of 2nd part global - insert your code only below this line  *
+... "insert your code here
+*$*$ end of 2nd part global - insert your code only before this line   *
+
+*---------------------------------------------------------------------*
+*       CLASS routine IMPLEMENTATION
+*---------------------------------------------------------------------*
+*
+*---------------------------------------------------------------------*
+CLASS lcl_transform IMPLEMENTATION.
+
+*----------------------------------------------------------------------*
+*       Method start_routine
+*----------------------------------------------------------------------*
+*       Calculation of source package via start routine
+*----------------------------------------------------------------------*
+*   <-> source package
+*----------------------------------------------------------------------*
   METHOD start_routine.
 *=== Segments ===
 
@@ -126,6 +232,12 @@ LOOP AT SOURCE_PACKAGE ASSIGNING <SOURCE_FIELDS>.
   IF <SOURCE_FIELDS>-/BIC/ZSC_BA = 'POS' AND
   <SOURCE_FIELDS>-/BIC/ZSMETHOD = 'B2B'.
     <SOURCE_FIELDS>-/BIC/ZSMETHOD = 'POSB2B'.
+
+*Identify Return of WWW goods in Stores
+  ELSEIF <SOURCE_FIELDS>-/BIC/ZSC_BA = 'POS' AND (
+  <SOURCE_FIELDS>-BILL_TYPE = 'ZG2' OR <SOURCE_FIELDS>-BILL_TYPE =
+  'ZCFR' ).
+    <SOURCE_FIELDS>-/BIC/ZSMETHOD = 'WWWRTN'.   "Return of WWW in Store
   ENDIF.
 
 *### Set the update status to Derived = '0100'
@@ -140,3 +252,35 @@ ENDLOOP.
 
 *$*$ end of routine - insert your code only before this line         *-*
   ENDMETHOD.                    "start_routine
+*----------------------------------------------------------------------*
+*       Inverse method inverse_start_routine
+*----------------------------------------------------------------------*
+*       This subroutine needs to be implemented only for direct access
+*       (for better performance) and for the Report/Report Interface
+*       (drill through).
+*       The inverse routine should transform a projection and
+*       a selection for the target to a projection and a selection
+*       for the source, respectively.
+*       If the implementation remains empty all fields are filled and
+*       all values are selected.
+*----------------------------------------------------------------------*
+*       Customer comment:
+*----------------------------------------------------------------------*
+  METHOD inverse_start_routine.
+
+*   IMPORTING
+*     i_r_selset_outbound          TYPE REF TO cl_rsmds_set
+*     i_th_fields_outbound         TYPE HASHED TABLE
+*     i_r_selset_outbound_complete TYPE REF TO cl_rsmds_set
+*     i_r_universe_inbound         TYPE REF TO cl_rsmds_universe
+*   CHANGING
+*     c_r_selset_inbound           TYPE REF TO cl_rsmds_set
+*     c_th_fields_inbound          TYPE HASHED TABLE
+*     c_exact                      TYPE rs_bool
+
+*$*$ begin of inverse routine - insert your code only below this line*-*
+... "insert your code here
+*$*$ end of inverse routine - insert your code only before this line *-*
+
+  ENDMETHOD.                    "inverse_start_routine
+ENDCLASS.                    "routine IMPLEMENTATION
