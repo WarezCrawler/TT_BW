@@ -1,0 +1,81 @@
+*From BWP 2018-01-24
+
+  METHOD if_rsroa_variables_exit_badi~process.
+
+    DATA: l_d_fname(30) TYPE c
+          , l_funcname  TYPE rs38l_fnam .
+
+    CASE i_step.
+
+      WHEN 1.
+
+        CONCATENATE 'ZVAR_PRE_POPUP_' i_vnam INTO l_d_fname.
+
+      WHEN 2.
+        CONCATENATE 'ZVAR_POST_POPUP_' i_vnam INTO l_d_fname.
+      WHEN 3.
+
+        l_d_fname = 'ZVAR_CHECK_VALIDITY'.
+      WHEN 0.
+        CONCATENATE 'ZVAR_AUTHORITY_' i_vnam INTO l_d_fname.
+    ENDCASE.
+
+*.. Check if it is a valid Function in the system. Avoiding Dumps
+    CLEAR l_funcname .
+    l_funcname = l_d_fname .
+    CALL FUNCTION 'FUNCTION_EXISTS'
+      EXPORTING
+        funcname           = l_funcname
+      EXCEPTIONS
+        function_not_exist = 1
+        OTHERS             = 2.
+    IF sy-subrc = 0 . "continue only if function exist
+*--------------------------------------------------------------------*
+* Exit Called
+*--------------------------------------------------------------------*
+      CALL FUNCTION l_d_fname
+        EXPORTING
+          i_vnam        = i_vnam
+          i_vartyp      = i_vartyp
+          i_iobjnm      = i_iobjnm
+          i_s_cob_pro   = i_s_cob_pro
+          i_s_rkb1d     = i_s_rkb1d
+          i_periv       = i_periv
+          i_t_var_range = i_t_var_range
+          i_step        = i_step
+        IMPORTING
+          c_t_range     = c_t_range
+          c_no_screen   = c_no_screen
+          c_check_again = c_check_again
+          c_s_customer  = c_s_customer
+        EXCEPTIONS
+          OTHERS        = 1.
+
+      IF sy-subrc <> 0.
+        IF i_step = 3 .
+         MESSAGE ID sy-msgid TYPE 'W'
+                  NUMBER sy-msgno
+                  WITH
+                  sy-msgv1 sy-msgv2
+                  sy-msgv3 sy-msgv4 .
+          RAISE EXCEPTION TYPE cx_rs_error .
+        ELSE .
+          MESSAGE ID sy-msgid TYPE sy-msgty
+                  NUMBER sy-msgno
+                  WITH
+                  sy-msgv1 sy-msgv2
+                  sy-msgv3 sy-msgv4 .
+
+        ENDIF .
+      ENDIF.
+
+    ENDIF .
+
+
+
+
+
+
+
+
+  ENDMETHOD.
