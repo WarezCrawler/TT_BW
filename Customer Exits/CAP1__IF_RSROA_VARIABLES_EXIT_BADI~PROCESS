@@ -1,0 +1,138 @@
+*From CAP 2018-01-24
+*BADI: IF_RSROA_VARIABLES_EXIT_BADI~PROCESS
+
+
+  method IF_RSROA_VARIABLES_EXIT_BADI~PROCESS.
+
+data:
+      l_s_var TYPE rrs0_s_var_range,
+      l_s_range like line of C_T_RANGE.
+
+* local
+data: l_version(3) type c,
+      l_infoprov type RSINFOPROV.
+
+* >
+data: l_infocube type RSINFOCUBE.
+* <
+
+*data: l_fiscvarnt type PERIV,
+*      l_prev_year type GJAHR,
+*      l_curr_period type RSBCT_RP_FISCPER,
+*      l_prev_period type RSBCT_RP_FISCPER.
+*data: l_first_period type RSBCT_RP_FISCPER,
+*      l_last_period type RSBCT_RP_FISCPER.
+*data: l_timvl_in type RSD_CHAVL,
+*      l_timvl_out type RSD_CHAVL.
+*data: l_t_periodinfo type table of RSBCT_RP_PERIOD_STRUC,
+*      l_s_periodinfo like line of l_t_periodinfo.
+*data: l_lines type i.
+
+if i_step = 2.
+
+ CASE i_vnam.
+
+  WHEN '/RAP/INFOPROV_ESM_01'.
+
+    read table I_T_VAR_RANGE into l_s_var
+    with key vnam = '/RAP/VERSN_MSM_01'.
+    l_version = l_s_var-low.
+*  if sy-subrc = 0.
+*    read table l_s_var-range into l_s_var_range index 1.
+*    if sy-subrc = 0 and not l_s_var_range-low is initial.
+
+   clear l_infocube.
+      select single infocube from /RAP/RS_VARCUST into l_infocube
+         where compid = I_S_RKB1D-compid
+         and VNAM_ICUBE = i_vnam
+         and VNAM_VERS = l_s_var-vnam
+         and version = l_version.
+
+  l_infoprov = l_infocube.
+
+  l_s_range-sign = rs_c_range_sign-including.
+  l_s_range-opt  = rs_c_range_opt-equal.
+  l_s_range-low  = l_infoprov.
+  l_s_range-high = ''.
+  APPEND l_s_range TO c_t_range.
+
+  WHEN '/RAP/INFOPROV_ESM_03'.
+
+    read table I_T_VAR_RANGE into l_s_var
+    with key vnam = '/RAP/VERSN_MSM_01'.
+    l_version = l_s_var-low.
+*  if sy-subrc = 0.
+*    read table l_s_var-range into l_s_var_range index 1.
+*    if sy-subrc = 0 and not l_s_var_range-low is initial.
+
+   clear l_infocube.
+      select single infocube from /RAP/RS_VARCUST into l_infocube
+         where compid = I_S_RKB1D-compid
+         and VNAM_ICUBE = i_vnam
+         and VNAM_VERS = l_s_var-vnam
+         and version = l_version.
+
+  l_infoprov = l_infocube.
+
+  l_s_range-sign = rs_c_range_sign-including.
+  l_s_range-opt  = rs_c_range_opt-equal.
+  l_s_range-low  = l_infoprov.
+  l_s_range-high = ''.
+  APPEND l_s_range TO c_t_range.
+
+  WHEN '/RAP/INFOPROV_ESM_02'.
+
+    read table I_T_VAR_RANGE into l_s_var
+    with key vnam = '/RAP/VERSN_MSM_02'.
+    l_version =  l_s_var-low.
+
+   clear l_infocube.
+      select single infocube from /RAP/RS_VARCUST into l_infocube
+         where compid = I_S_RKB1D-compid
+         and VNAM_ICUBE = i_vnam
+         and VNAM_VERS = l_s_var-vnam
+         and version = l_version.
+
+  l_infoprov = l_infocube.
+
+  l_s_range-sign = rs_c_range_sign-including.
+  l_s_range-opt  = rs_c_range_opt-equal.
+  l_s_range-low  = l_infoprov.
+  l_s_range-high = ''.
+  APPEND l_s_range TO c_t_range.
+*{   INSERT         CADK911390                                        1
+  WHEN 'ZINFO_0112'.
+
+    read table I_T_VAR_RANGE into l_s_var
+    with key vnam = '/RAP/VERSN_MSM_18'.
+    l_version =  l_s_var-low.
+
+   clear l_infocube.
+*      select single infocube from /RAP/RS_VARCUST into l_infocube
+*         where compid = I_S_RKB1D-compid
+*         and VNAM_ICUBE = i_vnam
+*         and VNAM_VERS = l_s_var-vnam
+*         and version = l_version.
+
+
+IF l_s_var-low = 'ISP'.
+  l_infocube = 'ZAP_R12'.
+  else.
+  l_infocube = 'ZAP_R01'.
+  endif.
+
+  l_infoprov = l_infocube.
+
+  l_s_range-sign = rs_c_range_sign-including.
+  l_s_range-opt  = rs_c_range_opt-equal.
+  l_s_range-low  = l_infoprov.
+  l_s_range-high = ''.
+  APPEND l_s_range TO c_t_range.
+*}   INSERT
+
+  ENDCASE.
+
+
+
+ endif.
+endmethod.
