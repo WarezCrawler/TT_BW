@@ -1,24 +1,57 @@
-*From BWP 2018-01-24
-
+*From BWD 2018-02-11
   METHOD if_rsroa_variables_exit_badi~process.
 
     DATA: l_d_fname(30) TYPE c
           , l_funcname  TYPE rs38l_fnam .
 
-    CASE i_step.
+*CE_XXXXXXX	CE 	= Customer Exit (pure background)
+*SME_XXXXXXX  SME   = Customer Exit , Single, Mandatory
+*SOE_XXXXXXX  SOE   = Customer Exit , Single, Optional
+*MME_XXXXXXX  MME   = Customer Exit , Multiple, Mandatory
+*MOE_XXXXXXX  MOE   = Customer Exit , Multiple, Optional
+*IME_XXXXXXX  IME   = Customer Exit , Interval, Mandatory
+*IOE_XXXXXXX  IOE   = Customer Exit , Interval, Optional
+*OME_XXXXXXX  OME   = Customer Exit , Select Option, Mandatory
+*OOE_XXXXXXX  MME   = Customer Exit , Select Option, Optional
 
-      WHEN 1.
+*BREAK-POINT.
 
-        CONCATENATE 'ZVAR_PRE_POPUP_' i_vnam INTO l_d_fname.
+* Determine this function name of the customer exit variable
+    IF i_vnam(3) = 'CE_'.
+      CONCATENATE 'Z' i_vnam INTO l_d_fname.
+    ELSEIF i_vnam(3) = 'SME'.
+      CONCATENATE 'Z' i_vnam INTO l_d_fname.
+    ELSEIF i_vnam(3) = 'SOE'.
+      CONCATENATE 'Z' i_vnam INTO l_d_fname.
+    ELSEIF i_vnam(3) = 'MME'.
+      CONCATENATE 'Z' i_vnam INTO l_d_fname.
+    ELSEIF i_vnam(3) = 'MOE'.
+      CONCATENATE 'Z' i_vnam INTO l_d_fname.
+    ELSEIF i_vnam(3) = 'IME'.
+      CONCATENATE 'Z' i_vnam INTO l_d_fname.
+    ELSEIF i_vnam(3) = 'IOE'.
+      CONCATENATE 'Z' i_vnam INTO l_d_fname.
+    ELSEIF i_vnam(3) = 'OME'.
+      CONCATENATE 'Z' i_vnam INTO l_d_fname.
+    ELSEIF i_vnam(3) = 'OOE'.
+      CONCATENATE 'Z' i_vnam INTO l_d_fname.
+    ELSE.
+*Old implementation --> Added for compatibility
+      CASE i_step.
+        WHEN 1.
+          CONCATENATE 'ZVAR_PRE_POPUP_' i_vnam INTO l_d_fname.
+        WHEN 2.
+          CONCATENATE 'ZVAR_POST_POPUP_' i_vnam INTO l_d_fname.
+        WHEN 3.
+* Disabled 2018-02-09 by UKO -- Does not seem to be in use
+*          l_d_fname = 'ZVAR_CHECK_VALIDITY'.
+        WHEN 0.
+          CONCATENATE 'ZVAR_AUTHORITY_' i_vnam INTO l_d_fname.
+      ENDCASE.
+    ENDIF.
 
-      WHEN 2.
-        CONCATENATE 'ZVAR_POST_POPUP_' i_vnam INTO l_d_fname.
-      WHEN 3.
 
-        l_d_fname = 'ZVAR_CHECK_VALIDITY'.
-      WHEN 0.
-        CONCATENATE 'ZVAR_AUTHORITY_' i_vnam INTO l_d_fname.
-    ENDCASE.
+
 
 *.. Check if it is a valid Function in the system. Avoiding Dumps
     CLEAR l_funcname .
