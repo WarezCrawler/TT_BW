@@ -1,0 +1,257 @@
+
+
+PROGRAM trans_routine.
+
+
+*---------------------------------------------------------------------*
+*       CLASS routine DEFINITION
+*---------------------------------------------------------------------*
+*
+*---------------------------------------------------------------------*
+CLASS lcl_transform DEFINITION.
+  PUBLIC SECTION.
+
+*  Attributs
+    DATA:
+      p_check_master_data_exist
+            TYPE RSODSOCHECKONLY READ-ONLY,
+*-    Instance for getting request runtime attributs;
+*     Available information: Refer to methods of
+*     interface 'if_rsbk_request_admintab_view'
+      p_r_request
+            TYPE REF TO if_rsbk_request_admintab_view READ-ONLY.
+
+  PRIVATE SECTION.
+
+    TYPE-POOLS: rsd, rstr.
+
+*   Rule specific types
+    TYPES:
+      BEGIN OF _ty_s_TG_1,
+*      InfoObject: 0MATERIAL Article.
+        MATERIAL           TYPE /BI0/OIMATERIAL,
+*      InfoObject: ZCM_TEAM Category Manager Team.
+        /BIC/ZCM_TEAM           TYPE /BIC/OIZCM_TEAM,
+*      InfoObject: ZSTRATMAT Strategic Product Group.
+        /BIC/ZSTRATMAT           TYPE /BIC/OIZSTRATMAT,
+*      InfoObject: 0RECORD.
+        RECORD           TYPE RSARECORD,
+      END   OF _ty_s_TG_1.
+    TYPES:
+      _ty_t_TG_1        TYPE STANDARD TABLE OF _ty_s_TG_1
+                        WITH NON-UNIQUE DEFAULT KEY.
+
+*$*$ begin of global - insert your declaration only below this line  *-*
+... "insert your code here
+*$*$ end of global - insert your declaration only before this line   *-*
+    METHODS
+      new_record__end_routine
+        IMPORTING
+          source_segid             type rstran_segid
+          source_record            type sytabix
+        EXPORTING
+          record_new               type sytabix.
+
+    METHODS
+      end_routine
+        IMPORTING
+          request                  type rsrequest
+          datapackid               type rsdatapid
+          segid                    type rsbk_segid
+        EXPORTING
+          monitor                  type rstr_ty_t_monitors
+        CHANGING
+          RESULT_PACKAGE              type _ty_t_TG_1
+        RAISING
+          cx_rsrout_abort
+          cx_rsbk_errorcount.
+    METHODS
+      inverse_end_routine
+        IMPORTING
+          i_th_fields_outbound         TYPE rstran_t_field_inv
+          I_R_SELSET_OUTBOUND          TYPE REF TO CL_RSMDS_SET
+          i_is_main_selection          TYPE rs_bool
+          i_r_selset_outbound_complete TYPE REF TO cl_rsmds_set
+          i_r_universe_inbound         TYPE REF TO CL_RSMDS_UNIVERSE
+        CHANGING
+          c_th_fields_inbound          TYPE rstran_t_field_inv
+          c_r_selset_inbound           TYPE REF TO CL_RSMDS_SET
+          c_exact                      TYPE rs_bool.
+ENDCLASS.                    "routine DEFINITION
+
+*$*$ begin of 2nd part global - insert your code only below this line  *
+... "insert your code here
+*$*$ end of 2nd part global - insert your code only before this line   *
+
+*---------------------------------------------------------------------*
+*       CLASS routine IMPLEMENTATION
+*---------------------------------------------------------------------*
+*
+*---------------------------------------------------------------------*
+CLASS lcl_transform IMPLEMENTATION.
+
+*----------------------------------------------------------------------*
+*       Method end_routine
+*----------------------------------------------------------------------*
+*       Calculation of result package via end routine.
+*       Note: Update of target fields depends on rule assignment in
+*       transformation editor. Only fields that have a rule assigned,
+*       are updated to the data target.
+*----------------------------------------------------------------------*
+*   <-> result package
+*----------------------------------------------------------------------*
+  METHOD end_routine.
+*=== Segments ===
+
+    FIELD-SYMBOLS:
+      <RESULT_FIELDS>    TYPE _ty_s_TG_1.
+
+    DATA:
+      MONITOR_REC     TYPE rstmonitor.
+
+*$*$ begin of routine - insert your code only below this line        *-*
+... "insert your code here
+*--  fill table "MONITOR" with values of structure "MONITOR_REC"
+*-   to make monitor entries
+... "to cancel the update process
+*    raise exception type CX_RSROUT_ABORT.
+
+*        MATERIAL           TYPE /BI0/OIMATERIAL,
+*        /BIC/ZCM_TEAM           TYPE /BIC/OIZCM_TEAM,
+*        /BIC/ZSTRATMAT           TYPE /BIC/OIZSTRATMAT,
+
+*** COMMENT
+* Do not manipulate with the following objects in this end routine
+* --> /BIC/ZCM_TEAM
+***
+
+DATA:
+      ZMD_AD01 TYPE STANDARD TABLE OF /BIC/AZMD_AD012,
+      StrategicMaterialGroup TYPE /BIC/AZMD_AD012,
+      WeekNo  TYPE SCAL-WEEK,
+*      StratMatCount TYPE i,
+      StratMatCountError TYPE i,
+      Date TYPE D.
+
+
+BREAK-POINT.
+
+*Sy-UZEIT => System Date
+
+Date = SY-DATUM.       " - 7.
+CALL FUNCTION 'DATE_GET_WEEK'
+  EXPORTING
+    date =                       Date
+  IMPORTING
+    week =                       WeekNo
+  EXCEPTIONS
+    DATE_INVALID =               1
+    .  "  DATE_GET_WEEK
+*IF SY-SUBRC EQ 0.
+*  "All OK
+*ELSEIF SY-SUBRC EQ 1. "Exception
+*  "Add code for exception here
+*ENDIF.
+
+
+
+SELECT * INTO TABLE ZMD_AD01 FROM /BIC/AZMD_AD012 WHERE CALWEEK = WeekNo
+AND /BIC/ZDIST1 = 1
+.
+
+*BREAK-POINT.
+
+*StratMatCount = 0.
+StratMatCountError = 0.
+LOOP AT RESULT_PACKAGE ASSIGNING <RESULT_FIELDS>.
+
+  READ TABLE ZMD_AD01 INTO StrategicMaterialGroup WITH KEY MATERIAL =
+  <RESULT_FIELDS>-MATERIAL.
+  IF sy-subrc = 0.
+*    IF StrategicMaterialGroup-/BIC/ZDIST1 = 1.
+      <RESULT_FIELDS>-/BIC/ZSTRATMAT =
+      StrategicMaterialGroup-/BIC/ZSTRATMAT.
+*      StratMatCount = StratMatCount + 1.
+*    ELSEIF StrategicMaterialGroup-/BIC/ZDIST1 = 0.
+*      <RESULT_FIELDS>-/BIC/ZSTRATMAT = ''.
+*    ELSE.
+*      <RESULT_FIELDS>-/BIC/ZSTRATMAT = ''.
+*      StratMatCountError = StratMatCountError + 1.
+*    ENDIF.
+*    BREAK-POINT.
+  ELSE.
+    <RESULT_FIELDS>-/BIC/ZSTRATMAT = ''.
+  ENDIF.
+
+ENDLOOP.
+
+BREAK-POINT.
+
+*CALWEEK
+*FISCVARNT
+*/BIC/ZSTRATMAT
+*/BIC/ZMATGEN
+*MATERIAL
+*RECORDMODE
+*/BIC/ZDIST1
+
+*SELECT /BIC/ZMATGEN,  INTO TABLE ZMD_AD01 FROM /BIC/AZMD_AD012 WHERE
+*CALWEEK = WeekNo
+*AND /BIC/ZDIST1 > 1.
+
+
+
+IF StratMatCountError > 0.
+  monitor_rec-msgid = 'RSM'.     "???
+  monitor_rec-msgty = 'W'.
+  "W - Warning : I - Information : E - Error
+  monitor_rec-msgno = '799'.     "??? Error: ???
+  monitor_rec-msgv1 = StratMatCountError && ' Strategic Product Errors'.
+*  monitor_rec-msgv2 = 'Strategic Product Errors'.
+  APPEND monitor_rec TO MONITOR.
+ENDIF.
+
+
+
+
+
+*$*$ end of routine - insert your code only before this line         *-*
+  ENDMETHOD.                    "end_routine
+*----------------------------------------------------------------------*
+*       Inverse method inverse_end_routine
+*----------------------------------------------------------------------*
+*       This subroutine needs to be implemented only for direct access
+*       (for better performance) and for the Report/Report Interface
+*       (drill through).
+*       The inverse routine should transform a projection and
+*       a selection for the target to a projection and a selection
+*       for the source, respectively.
+*       If the implementation remains empty all fields are filled and
+*       all values are selected.
+*----------------------------------------------------------------------*
+*       Customer comment:
+*----------------------------------------------------------------------*
+  METHOD inverse_end_routine.
+
+*   IMPORTING
+*     i_r_selset_outbound          TYPE REF TO cl_rsmds_set
+*     i_th_fields_outbound         TYPE HASHED TABLE
+*     i_r_selset_outbound_complete TYPE REF TO cl_rsmds_set
+*     i_r_universe_inbound         TYPE REF TO cl_rsmds_universe
+*   CHANGING
+*     c_r_selset_inbound           TYPE REF TO cl_rsmds_set
+*     c_th_fields_inbound          TYPE HASHED TABLE
+*     c_exact                      TYPE rs_bool
+
+*$*$ begin of inverse routine - insert your code only below this line*-*
+... "insert your code here
+*$*$ end of inverse routine - insert your code only before this line *-*
+
+  ENDMETHOD.                    "inverse_end_routine
+
+  METHOD new_record__end_routine.
+
+***** IMPLEMENTATION  is only visible in generated program *****
+
+  ENDMETHOD.
+ENDCLASS.                    "routine IMPLEMENTATION
