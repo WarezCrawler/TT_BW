@@ -1,0 +1,226 @@
+
+
+PROGRAM trans_routine.
+
+
+*---------------------------------------------------------------------*
+*       CLASS routine DEFINITION
+*---------------------------------------------------------------------*
+*
+*---------------------------------------------------------------------*
+CLASS lcl_transform DEFINITION.
+  PUBLIC SECTION.
+
+*  Attributs
+    DATA:
+      p_check_master_data_exist
+            TYPE RSODSOCHECKONLY READ-ONLY,
+*-    Instance for getting request runtime attributs;
+*     Available information: Refer to methods of
+*     interface 'if_rsbk_request_admintab_view'
+      p_r_request
+            TYPE REF TO if_rsbk_request_admintab_view READ-ONLY.
+
+  PRIVATE SECTION.
+
+    TYPE-POOLS: rsd, rstr.
+
+*   Rule specific types
+    TYPES:
+      BEGIN OF _ty_s_TG_1,
+*      InfoObject: 0CALWEEK Calendar Year/Week.
+        CALWEEK           TYPE /BI0/OICALWEEK,
+*      InfoObject: 0FISCVARNT Fiscal year variant.
+        FISCVARNT           TYPE /BI0/OIFISCVARNT,
+*      InfoObject: ZPLANTYPE Plan Data Type.
+        /BIC/ZPLANTYPE           TYPE /BIC/OIZPLANTYPE,
+*      InfoObject: ZSTRATMAT Strategic Product Group.
+        /BIC/ZSTRATMAT           TYPE /BIC/OIZSTRATMAT,
+*      InfoObject: ZMATGEN Generic material.
+        /BIC/ZMATGEN           TYPE /BIC/OIZMATGEN,
+*      InfoObject: 0MATERIAL Article.
+        MATERIAL           TYPE /BI0/OIMATERIAL,
+*      InfoObject: ZDIST1 Distribution Key 1.
+        /BIC/ZDIST1           TYPE /BIC/OIZDIST1,
+*      Field: RECORD.
+        RECORD           TYPE RSARECORD,
+      END   OF _ty_s_TG_1.
+    TYPES:
+      _ty_t_TG_1        TYPE STANDARD TABLE OF _ty_s_TG_1
+                        WITH NON-UNIQUE DEFAULT KEY.
+
+*$*$ begin of global - insert your declaration only below this line  *-*
+... "insert your code here
+*$*$ end of global - insert your declaration only before this line   *-*
+    METHODS
+      new_record__end_routine
+        IMPORTING
+          source_segid             type rstran_segid
+          source_record            type sytabix
+        EXPORTING
+          record_new               type sytabix.
+
+    METHODS
+      end_routine
+        IMPORTING
+          request                  type rsrequest
+          datapackid               type rsdatapid
+          segid                    type rsbk_segid
+        EXPORTING
+          monitor                  type rstr_ty_t_monitors
+        CHANGING
+          RESULT_PACKAGE              type _ty_t_TG_1
+        RAISING
+          cx_rsrout_abort
+          cx_rsbk_errorcount.
+    METHODS
+      inverse_end_routine
+        IMPORTING
+          i_th_fields_outbound         TYPE rstran_t_field_inv
+          I_R_SELSET_OUTBOUND          TYPE REF TO CL_RSMDS_SET
+          i_is_main_selection          TYPE rs_bool
+          i_r_selset_outbound_complete TYPE REF TO cl_rsmds_set
+          i_r_universe_inbound         TYPE REF TO CL_RSMDS_UNIVERSE
+        CHANGING
+          c_th_fields_inbound          TYPE rstran_t_field_inv
+          c_r_selset_inbound           TYPE REF TO CL_RSMDS_SET
+          c_exact                      TYPE rs_bool.
+ENDCLASS.                    "routine DEFINITION
+
+*$*$ begin of 2nd part global - insert your code only below this line  *
+... "insert your code here
+*$*$ end of 2nd part global - insert your code only before this line   *
+
+*---------------------------------------------------------------------*
+*       CLASS routine IMPLEMENTATION
+*---------------------------------------------------------------------*
+*
+*---------------------------------------------------------------------*
+CLASS lcl_transform IMPLEMENTATION.
+
+*----------------------------------------------------------------------*
+*       Method end_routine
+*----------------------------------------------------------------------*
+*       Calculation of result package via end routine.
+*       Note: Update of target fields depends on rule assignment in
+*       transformation editor. Only fields that have a rule assigned,
+*       are updated to the data target.
+*----------------------------------------------------------------------*
+*   <-> result package
+*----------------------------------------------------------------------*
+  METHOD end_routine.
+*=== Segments ===
+
+    FIELD-SYMBOLS:
+      <RESULT_FIELDS>    TYPE _ty_s_TG_1.
+
+    DATA:
+      MONITOR_REC     TYPE rstmonitor.
+
+*$*$ begin of routine - insert your code only below this line        *-*
+... "insert your code here
+*--  fill table "MONITOR" with values of structure "MONITOR_REC"
+*-   to make monitor entries
+... "to cancel the update process
+*    raise exception type CX_RSROUT_ABORT.
+
+BREAK-POINT.
+
+TYPES:
+  BEGIN OF MaterialStructure,
+    MATERIAL      TYPE /BI0/OIMATERIAL,
+    /BIC/ZMATGEN  TYPE /BIC/OIZMATGEN,
+    /BIC/ZSTRATMAT TYPE /BIC/OIZSTRATMAT,
+  END OF MaterialStructure.
+
+DATA:
+  NewRecord TYPE _ty_s_TG_1,
+  NewRecords TYPE STANDARD TABLE OF _ty_s_TG_1,
+  NewRecordCounter TYPE i,
+
+  Materials TYPE STANDARD TABLE OF MaterialStructure,
+  MaterialFromGeneric LIKE LINE OF Materials
+  .
+
+*SELECT ZGENMAT INTO Source_GENMAT FROM <RESULT_FIELDS>-/BIC/ZMATGEN.
+*READ TABLE <RESULT_FIELDS> INTO
+
+*Select all materials that have a corresponding generic material into a
+*local table
+SELECT MATERIAL /BIC/ZMATGEN
+  INTO CORRESPONDING FIELDS OF TABLE Materials FROM /BI0/PMATERIAL
+  WHERE OBJVERS EQ 'A' AND /BIC/ZMATGEN NE ''.
+
+*Process all generic materials into individual materials
+LOOP AT RESULT_PACKAGE ASSIGNING <RESULT_FIELDS>.
+*Find all base materials of the generic material, and add them to the
+*result table
+  LOOP AT Materials INTO MaterialFromGeneric
+    WHERE /BIC/ZMATGEN = <RESULT_FIELDS>-/BIC/ZMATGEN.
+
+    "Prepare the structure to get new information
+    CLEAR NewRecord.
+    "Copy Current Record into "NewRecord"
+    NewRecord = <RESULT_FIELDS>.
+
+    "Update Material in the New Record
+    NewRecord-MATERIAL = MaterialFromGeneric-MATERIAL.
+
+    "Increment record counter
+    ADD 1 TO NewRecordCounter.
+    NewRecord-Record = NewRecordCounter.
+    "Add the new record to the result table
+    APPEND NewRecord TO NewRecords.
+
+  ENDLOOP.
+
+BREAK-POINT.
+
+ENDLOOP.
+
+*Delete existing result package
+FREE RESULT_PACKAGE.
+*Replace result package of the new processed records
+APPEND LINES OF NewRecords TO RESULT_PACKAGE.
+BREAK-POINT.
+
+*$*$ end of routine - insert your code only before this line         *-*
+  ENDMETHOD.                    "end_routine
+*----------------------------------------------------------------------*
+*       Inverse method inverse_end_routine
+*----------------------------------------------------------------------*
+*       This subroutine needs to be implemented only for direct access
+*       (for better performance) and for the Report/Report Interface
+*       (drill through).
+*       The inverse routine should transform a projection and
+*       a selection for the target to a projection and a selection
+*       for the source, respectively.
+*       If the implementation remains empty all fields are filled and
+*       all values are selected.
+*----------------------------------------------------------------------*
+*       Customer comment:
+*----------------------------------------------------------------------*
+  METHOD inverse_end_routine.
+
+*   IMPORTING
+*     i_r_selset_outbound          TYPE REF TO cl_rsmds_set
+*     i_th_fields_outbound         TYPE HASHED TABLE
+*     i_r_selset_outbound_complete TYPE REF TO cl_rsmds_set
+*     i_r_universe_inbound         TYPE REF TO cl_rsmds_universe
+*   CHANGING
+*     c_r_selset_inbound           TYPE REF TO cl_rsmds_set
+*     c_th_fields_inbound          TYPE HASHED TABLE
+*     c_exact                      TYPE rs_bool
+
+*$*$ begin of inverse routine - insert your code only below this line*-*
+... "insert your code here
+*$*$ end of inverse routine - insert your code only before this line *-*
+
+  ENDMETHOD.                    "inverse_end_routine
+
+  METHOD new_record__end_routine.
+
+***** IMPLEMENTATION  is only visible in generated program *****
+
+  ENDMETHOD.
+ENDCLASS.                    "routine IMPLEMENTATION
