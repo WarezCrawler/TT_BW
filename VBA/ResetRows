@@ -1,0 +1,45 @@
+Const cDS = "SomeDataSource"
+
+Sub ResetRows(DS As String)
+    Dim rowDimensions As Variant
+    Dim rowDimension As String, multiDim As Boolean
+    Dim nDimensions As Integer
+
+    rowDimensions = Application.Run("SAPListOfDimensions", DS, "AXIS", "ROWS")
+    multiDim = True
+
+    'Handle that if there is only one dimension in the rows, then the result of "SAPListOfDimensions" is not a multi dimensional array
+    'Debug.Print UBound(rowDimensions)
+   
+    'Test if the rowDimensions is and array, and if that array is multidimensional
+    'If not an array, then there is no dimensions in rows
+    If IsArray(rowDimensions) Then
+        'Start error handling in order to test the array
+        On Error Resume Next
+        'Test if the array is multidimensional
+        If UBound(rowDimensions, 2) > 0 Then
+            'If error, then the array is single dimensional
+            If Err.Number = 0 Then
+                'Multi dimensional Array identified
+                multiDim = True
+            Else
+                'Single dimensional Array identified
+                multiDim = False
+            End If
+        End If
+        'Stop error handling
+        On Error GoTo 0
+        
+        nDimensions = UBound(rowDimensions, 1)
+    
+        'Loop all rows dimensions in the data source
+        For i = 1 To nDimensions
+            'Test if multi dimensional array was returned, and update accordingly
+            If multiDim Then    'Multi Dimensional
+                Call Application.Run("SAPMoveDimension", DS, rowDimensions(i, 1), "FILTER", i)
+            Else                'Single dimensional
+                Call Application.Run("SAPMoveDimension", DS, rowDimensions(i), "FILTER", i)
+            End If
+        Next
+    End If
+End Sub
