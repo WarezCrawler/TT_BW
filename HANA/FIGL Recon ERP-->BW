@@ -1,0 +1,192 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Calculation:scenario xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:Calculation="http://www.sap.com/ndb/BiModelCalculation.ecore" schemaVersion="2.3" id="CV_RECON_FIGL_01" applyPrivilegeType="NONE" cacheInvalidationPeriod="NONE" checkAnalyticPrivileges="false" defaultClient="$$client$$" defaultLanguage="$$language$$" hierarchiesSQLEnabled="false" translationRelevant="true" visibility="reportingEnabled" calculationScenarioType="SCRIPT_BASED" dataCategory="CUBE" enforceSqlExecution="false" executionSemantic="UNDEFINED" scriptParametersCaseSensitive="true">
+  <origin/>
+  <descriptions defaultDescription="Recon FIGL/ACDOCA 1"/>
+  <metadata changedAt="2018-10-02 10:43:11.702"/>
+  <localVariables/>
+  <variableMappings/>
+  <informationModelLayout relativeWidthScenario="27"/>
+  <dataSources/>
+  <calculationViews>
+    <calculationView xsi:type="Calculation:SqlScriptView" id="Script_View">
+      <descriptions/>
+      <viewAttributes>
+        <viewAttribute datatype="VARCHAR" id="SOURCE" length="10"/>
+        <viewAttribute datatype="NVARCHAR" id="RCLNT" length="3"/>
+        <viewAttribute datatype="NVARCHAR" id="RLDNR" length="2"/>
+        <viewAttribute datatype="NVARCHAR" id="GJAHR" length="4"/>
+        <viewAttribute datatype="NVARCHAR" id="BELNR" length="10"/>
+        <viewAttribute datatype="VARCHAR" id="DOCLN" length="6"/>
+        <viewAttribute datatype="VARCHAR" id="RBUKRS" length="4"/>
+        <viewAttribute datatype="VARCHAR" id="RACCT" length="10"/>
+        <viewAttribute datatype="NUMERIC" id="FISCYEARPER" length="7"/>
+        <viewAttribute datatype="DATE" id="BUDAT"/>
+        <viewAttribute datatype="DATE" id="CPUDT"/>
+        <viewAttribute datatype="DECIMAL" id="ERP_WSL" length="17" scale="3"/>
+        <viewAttribute datatype="DECIMAL" id="BW_WSL" length="17" scale="3"/>
+        <viewAttribute datatype="DECIMAL" id="WSL_DIFFERENCE" length="17" scale="3"/>
+      </viewAttributes>
+      <calculatedViewAttributes/>
+      <definition> 
+ /********* Begin Procedure Script ************/ 
+ BEGIN 
+/* NOTES
+1) Find documents that exist in ERP that does not exist in or are different than in BW
+2) Period selection needs to be dynamic, e.g. last 3 months, and only data from yesterday or something
+
+*/
+	/*Find the last date where the BW base dataset have been updated last. Subtract one day since there might 
+	be postings that have not yet been extracted*/
+	LastUpdateDate = 
+		SELECT TOP 1 TO_DATS(ADD_DAYS(UPDATE_DATE, -1)) AS UPDATE_DATE FROM &quot;SAPBW&quot;.&quot;/BIC/ACM_FIGL102&quot;
+			GROUP BY UPDATE_DATE
+			ORDER BY UPDATE_DATE DESC;
+	--LastUpdateDate2 = '201180924'
+
+	/*Find the periods we want to reconcile*/
+	/* DISABLED
+	EvaluationPeriods =
+		SELECT FISCYEARPER FROM &quot;SAPBW&quot;.&quot;/BIC/ACM_FIGL102&quot;
+			WHERE UPDATE_DATE BETWEEN ADD_DAYS(CURRENT_DATE, -90) AND CURRENT_DATE
+			GROUP BY FISCYEARPER;
+	*/
+
+
+	-- Check if a transaction is in ERP but not in BW (not the same as it is in BW and not ERP)
+	BaseRecon_ERP_BW = SELECT 'ERP>BW' AS SOURCE, ERP.RCLNT, ERP.RLDNR, ERP.GJAHR, ERP.BELNR, ERP.DOCLN, ERP.RBUKRS, 
+					ERP.RACCT, ERP.FISCYEARPER, ERP.BUDAT, BKPF.CPUDT, 
+					ERP.WSL AS ERP_WSL, BW.WSL AS BW_WSL, ABS(ERP.WSL)-ABS(BW.WSL) AS WSL_DIFFERENCE
+		FROM (
+			SELECT RCLNT, RLDNR, GJAHR, BELNR, DOCLN, RBUKRS, RACCT, FISCYEARPER, BUDAT, WSL, KSL
+				FROM &quot;TT_TECH&quot;.&quot;ERP_ACDOCA&quot;
+				WHERE RCLNT='100'
+					AND RLDNR = '0L'
+					--AND FISCYEARPER BETWEEN '2018000' AND '2018016'
+					AND GJAHR BETWEEN YEAR(CURRENT_DATE)-1 AND YEAR(CURRENT_DATE)
+					--AND ((BUDAT BETWEEN ADD_DAYS(CURRENT_DATE,-60) AND CURRENT_DATE) OR BUDAT = '')
+					AND ((BUDAT BETWEEN '20180917' AND '20180918') OR BUDAT = '')
+			EXCEPT
+			SELECT RCLNT, RLDNR, GJAHR, BELNR, DOCLN, RBUKRS, RACCT, FISCYEARPER, BUDAT, WSL, KSL
+				FROM &quot;SAPBW&quot;.&quot;/BIC/ACM_FIGL102&quot;
+				WHERE RCLNT='100'
+					AND RLDNR = '0L'
+					--AND FISCYEARPER BETWEEN '2018000' AND '2018016'
+					AND GJAHR BETWEEN YEAR(CURRENT_DATE)-1 AND YEAR(CURRENT_DATE)
+					--AND ((BUDAT BETWEEN ADD_DAYS(CURRENT_DATE,-60) AND CURRENT_DATE) OR BUDAT = '')
+					AND ((BUDAT BETWEEN '20180917' AND '20180918') OR BUDAT = '')
+		) AS ERP
+		LEFT OUTER JOIN &quot;SAPBW&quot;.&quot;/BIC/ACM_FIGL102&quot; AS BW
+			ON (ERP.GJAHR=BW.GJAHR AND ERP.RBUKRS=BW.RBUKRS AND ERP.BELNR=BW.BELNR AND ERP.DOCLN=BW.DOCLN)
+		LEFT OUTER JOIN &quot;TT_TECH&quot;.&quot;ERP_BKPF&quot; AS BKPF
+			ON (ERP.GJAHR=BKPF.GJAHR AND ERP.BELNR=BKPF.BELNR AND ERP.RBUKRS=BKPF.BUKRS)
+	;
+	
+	
+
+	-- Return the result
+	var_out = SELECT SOURCE, RCLNT, RLDNR, GJAHR, BELNR, DOCLN, RBUKRS, RACCT, FISCYEARPER, BUDAT, CPUDT, 
+						ERP_WSL, BW_WSL, WSL_DIFFERENCE
+			  FROM :BaseRecon_ERP_BW AS Base
+			  --Filter only dates where we expect the data to recon
+			  INNER JOIN :LastUpdateDate AS DateFilter ON Base.CPUDT &lt; DateFilter.UPDATE_DATE
+			  ;
+
+END /********* End Procedure Script ************/
+
+/*
+
+
+
+
+
+
+
+
+
+
+
+*/</definition>
+    </calculationView>
+  </calculationViews>
+  <logicalModel id="Script_View">
+    <descriptions/>
+    <attributes>
+      <attribute id="SOURCE" order="1">
+        <descriptions defaultDescription="SOURCE"/>
+        <keyMapping columnObjectName="Script_View" columnName="SOURCE"/>
+      </attribute>
+      <attribute id="RCLNT" order="2">
+        <descriptions defaultDescription="RCLNT"/>
+        <keyMapping columnObjectName="Script_View" columnName="RCLNT"/>
+      </attribute>
+      <attribute id="RLDNR" order="3">
+        <descriptions defaultDescription="RLDNR"/>
+        <keyMapping columnObjectName="Script_View" columnName="RLDNR"/>
+      </attribute>
+      <attribute id="GJAHR" order="4">
+        <descriptions defaultDescription="GJAHR"/>
+        <keyMapping columnObjectName="Script_View" columnName="GJAHR"/>
+      </attribute>
+      <attribute id="BELNR" order="5">
+        <descriptions defaultDescription="BELNR"/>
+        <keyMapping columnObjectName="Script_View" columnName="BELNR"/>
+      </attribute>
+      <attribute id="DOCLN" order="6">
+        <descriptions defaultDescription="DOCLN"/>
+        <keyMapping columnObjectName="Script_View" columnName="DOCLN"/>
+      </attribute>
+      <attribute id="RBUKRS" order="7">
+        <descriptions defaultDescription="RBUKRS"/>
+        <keyMapping columnObjectName="Script_View" columnName="RBUKRS"/>
+      </attribute>
+      <attribute id="RACCT" order="8">
+        <descriptions defaultDescription="RACCT"/>
+        <keyMapping columnObjectName="Script_View" columnName="RACCT"/>
+      </attribute>
+      <attribute id="FISCYEARPER" order="9">
+        <descriptions defaultDescription="FISCYEARPER"/>
+        <keyMapping columnObjectName="Script_View" columnName="FISCYEARPER"/>
+      </attribute>
+      <attribute id="BUDAT" order="10">
+        <descriptions defaultDescription="BUDAT"/>
+        <keyMapping columnObjectName="Script_View" columnName="BUDAT"/>
+      </attribute>
+      <attribute id="CPUDT" order="11">
+        <descriptions defaultDescription="CPUDT"/>
+        <keyMapping columnObjectName="Script_View" columnName="CPUDT"/>
+      </attribute>
+    </attributes>
+    <calculatedAttributes/>
+    <privateDataFoundation>
+      <tableProxies/>
+      <joins/>
+      <layout>
+        <shapes/>
+      </layout>
+    </privateDataFoundation>
+    <baseMeasures>
+      <measure id="ERP_WSL" order="12" aggregationType="sum" measureType="simple">
+        <descriptions defaultDescription="ERP_WSL"/>
+        <measureMapping columnObjectName="Script_View" columnName="ERP_WSL"/>
+      </measure>
+      <measure id="BW_WSL" order="13" aggregationType="sum" measureType="simple">
+        <descriptions defaultDescription="BW_WSL"/>
+        <measureMapping columnObjectName="Script_View" columnName="BW_WSL"/>
+      </measure>
+      <measure id="WSL_DIFFERENCE" order="14" aggregationType="sum" measureType="simple">
+        <descriptions defaultDescription="WSL_DIFFERENCE"/>
+        <measureMapping columnObjectName="Script_View" columnName="WSL_DIFFERENCE"/>
+      </measure>
+    </baseMeasures>
+    <calculatedMeasures/>
+    <restrictedMeasures/>
+    <localDimensions/>
+  </logicalModel>
+  <layout>
+    <shapes>
+      <shape modelObjectName="Output" modelObjectNameSpace="MeasureGroup">
+        <upperLeftCorner x="40" y="85"/>
+      </shape>
+    </shapes>
+  </layout>
+</Calculation:scenario>
