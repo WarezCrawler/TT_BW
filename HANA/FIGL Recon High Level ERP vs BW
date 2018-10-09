@@ -1,0 +1,453 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Calculation:scenario xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:Calculation="http://www.sap.com/ndb/BiModelCalculation.ecore" schemaVersion="2.3" id="CV_RECON_FIGL_03" applyPrivilegeType="NONE" checkAnalyticPrivileges="false" defaultClient="$$client$$" defaultLanguage="$$language$$" hierarchiesSQLEnabled="false" translationRelevant="true" visibility="reportingEnabled" calculationScenarioType="TREE_BASED" dataCategory="CUBE" enforceSqlExecution="false" executionSemantic="UNDEFINED" outputViewType="Aggregation">
+  <origin/>
+  <descriptions defaultDescription="FIGL High Level Recon"/>
+  <metadata changedAt="2018-10-01 11:27:32.76"/>
+  <localVariables/>
+  <variableMappings/>
+  <informationModelLayout relativeWidthScenario="39"/>
+  <dataSources>
+    <DataSource id="ERP_ACDOCA" type="DATA_BASE_TABLE">
+      <viewAttributes allViewAttributes="true"/>
+      <columnObject schemaName="TT_TECH" columnObjectName="ERP_ACDOCA"/>
+    </DataSource>
+    <DataSource id="/BIC/AZFI_AD102" type="DATA_BASE_TABLE">
+      <viewAttributes allViewAttributes="true"/>
+      <columnObject schemaName="SAPBW" columnObjectName="/BIC/AZFI_AD102"/>
+    </DataSource>
+  </dataSources>
+  <calculationViews>
+    <calculationView xsi:type="Calculation:ProjectionView" id="ACDOCA" filterExpressionLanguage="SQL">
+      <descriptions/>
+      <viewAttributes>
+        <viewAttribute id="RCLNT"/>
+        <viewAttribute id="RLDNR"/>
+        <viewAttribute id="PERIV"/>
+        <viewAttribute id="GJAHR"/>
+        <viewAttribute id="FISCYEARPER"/>
+        <viewAttribute id="BUDAT"/>
+        <viewAttribute id="RBUKRS"/>
+        <viewAttribute id="WWVKB_PA"/>
+        <viewAttribute id="RCNTR"/>
+        <viewAttribute id="WERKS"/>
+        <viewAttribute id="RACCT"/>
+        <viewAttribute id="FKART"/>
+        <viewAttribute id="RWCUR"/>
+        <viewAttribute id="WSL"/>
+        <viewAttribute id="RHCUR"/>
+        <viewAttribute id="HSL"/>
+        <viewAttribute id="RKCUR"/>
+        <viewAttribute id="KSL"/>
+      </viewAttributes>
+      <calculatedViewAttributes/>
+      <input node="#ERP_ACDOCA">
+        <mapping xsi:type="Calculation:AttributeMapping" target="RCLNT" source="RCLNT"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="RLDNR" source="RLDNR"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="PERIV" source="PERIV"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="GJAHR" source="GJAHR"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="FISCYEARPER" source="FISCYEARPER"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="BUDAT" source="BUDAT"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="RBUKRS" source="RBUKRS"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="WWVKB_PA" source="WWVKB_PA"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="RCNTR" source="RCNTR"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="WERKS" source="WERKS"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="RACCT" source="RACCT"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="FKART" source="FKART"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="RWCUR" source="RWCUR"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="WSL" source="WSL"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="RHCUR" source="RHCUR"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="HSL" source="HSL"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="RKCUR" source="RKCUR"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="KSL" source="KSL"/>
+      </input>
+      <filter>RCLNT='100'&#xD;
+AND RLDNR = '0L'&#xD;
+AND PERIV = 'V6'&#xD;
+AND &quot;GJAHR&quot; &lt;= YEAR(CURRENT_DATE)&#xD;
+AND &quot;GJAHR&quot; >= YEAR(CURRENT_DATE)-1</filter>
+    </calculationView>
+    <calculationView xsi:type="Calculation:AggregationView" id="ACDOCA_Aggr">
+      <descriptions/>
+      <viewAttributes>
+        <viewAttribute id="GJAHR"/>
+        <viewAttribute id="FISCYEARPER"/>
+        <viewAttribute id="BUDAT"/>
+        <viewAttribute id="RBUKRS"/>
+        <viewAttribute id="WWVKB_PA"/>
+        <viewAttribute id="RCNTR"/>
+        <viewAttribute id="WERKS"/>
+        <viewAttribute id="RACCT"/>
+        <viewAttribute id="FKART"/>
+        <viewAttribute id="RWCUR"/>
+        <viewAttribute aggregationType="sum" id="WSL"/>
+        <viewAttribute id="RHCUR"/>
+        <viewAttribute aggregationType="sum" id="HSL"/>
+        <viewAttribute id="RKCUR"/>
+        <viewAttribute aggregationType="sum" id="KSL"/>
+      </viewAttributes>
+      <calculatedViewAttributes>
+        <calculatedViewAttribute datatype="NVARCHAR" id="FORG" length="10" expressionLanguage="SQL">
+          <formula>CASE &#xD;
+ WHEN &quot;WWVKB_PA&quot; &lt;> '' THEN ltrim(&quot;WWVKB_PA&quot;,'0')&#xD;
+ WHEN &quot;RCNTR&quot; &lt;> '' THEN ltrim(&quot;RCNTR&quot;,'0')&#xD;
+ WHEN &quot;WERKS&quot; &lt;> '' THEN ltrim(&quot;WERKS&quot;,'0')&#xD;
+END</formula>
+        </calculatedViewAttribute>
+      </calculatedViewAttributes>
+      <input node="#ACDOCA">
+        <mapping xsi:type="Calculation:AttributeMapping" target="GJAHR" source="GJAHR"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="FISCYEARPER" source="FISCYEARPER"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="BUDAT" source="BUDAT"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="RBUKRS" source="RBUKRS"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="WWVKB_PA" source="WWVKB_PA"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="RCNTR" source="RCNTR"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="WERKS" source="WERKS"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="RACCT" source="RACCT"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="FKART" source="FKART"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="RWCUR" source="RWCUR"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="WSL" source="WSL"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="RHCUR" source="RHCUR"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="HSL" source="HSL"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="RKCUR" source="RKCUR"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="KSL" source="KSL"/>
+      </input>
+    </calculationView>
+    <calculationView xsi:type="Calculation:ProjectionView" id="ZFI_AD10" filterExpressionLanguage="SQL">
+      <descriptions/>
+      <viewAttributes>
+        <viewAttribute id="CHRT_ACCTS"/>
+        <viewAttribute id="FISCVARNT"/>
+        <viewAttribute id="FISCYEAR"/>
+        <viewAttribute id="FISCPER"/>
+        <viewAttribute id="RPA_BDD"/>
+        <viewAttribute id="COMP_CODE"/>
+        <viewAttribute id="SALES_OFF"/>
+        <viewAttribute id="COSTCENTER"/>
+        <viewAttribute id="PLANT"/>
+        <viewAttribute id="ZFORG"/>
+        <viewAttribute id="GL_ACCOUNT"/>
+        <viewAttribute id="BILL_TYPE"/>
+        <viewAttribute id="DOC_CURRCY"/>
+        <viewAttribute id="DEB_CRE_DC"/>
+        <viewAttribute id="LOC_CURRCY"/>
+        <viewAttribute id="DEB_CRE_LC"/>
+        <viewAttribute id="PS_COARCUR"/>
+        <viewAttribute id="PS_COAVAL"/>
+      </viewAttributes>
+      <calculatedViewAttributes/>
+      <input node="#/BIC/AZFI_AD102">
+        <mapping xsi:type="Calculation:AttributeMapping" target="CHRT_ACCTS" source="CHRT_ACCTS"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="FISCVARNT" source="FISCVARNT"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="FISCYEAR" source="FISCYEAR"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="FISCPER" source="FISCPER"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="RPA_BDD" source="RPA_BDD"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="COMP_CODE" source="COMP_CODE"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="SALES_OFF" source="SALES_OFF"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="COSTCENTER" source="COSTCENTER"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="PLANT" source="PLANT"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="ZFORG" source="/BIC/ZFORG"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="GL_ACCOUNT" source="GL_ACCOUNT"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="BILL_TYPE" source="BILL_TYPE"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="DOC_CURRCY" source="DOC_CURRCY"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="DEB_CRE_DC" source="DEB_CRE_DC"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="LOC_CURRCY" source="LOC_CURRCY"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="DEB_CRE_LC" source="DEB_CRE_LC"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="PS_COARCUR" source="PS_COARCUR"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="PS_COAVAL" source="PS_COAVAL"/>
+      </input>
+      <filter>FISCVARNT = 'V6'&#xD;
+AND &quot;CHRT_ACCTS&quot;='TOY'&#xD;
+AND &quot;FISCYEAR&quot; &lt;= YEAR(CURRENT_DATE)&#xD;
+AND &quot;FISCYEAR&quot; >= YEAR(CURRENT_DATE)-1</filter>
+    </calculationView>
+    <calculationView xsi:type="Calculation:AggregationView" id="ZFI_AD10_Aggr">
+      <descriptions/>
+      <viewAttributes>
+        <viewAttribute id="CHRT_ACCTS"/>
+        <viewAttribute id="FISCVARNT"/>
+        <viewAttribute id="FISCYEAR"/>
+        <viewAttribute id="FISCPER"/>
+        <viewAttribute id="RPA_BDD"/>
+        <viewAttribute id="COMP_CODE"/>
+        <viewAttribute id="SALES_OFF"/>
+        <viewAttribute id="COSTCENTER"/>
+        <viewAttribute id="PLANT"/>
+        <viewAttribute id="ZFORG"/>
+        <viewAttribute id="GL_ACCOUNT"/>
+        <viewAttribute id="BILL_TYPE"/>
+        <viewAttribute id="DOC_CURRCY"/>
+        <viewAttribute aggregationType="sum" id="DEB_CRE_DC"/>
+        <viewAttribute id="LOC_CURRCY"/>
+        <viewAttribute aggregationType="sum" id="DEB_CRE_LC"/>
+        <viewAttribute id="PS_COARCUR"/>
+        <viewAttribute aggregationType="sum" id="PS_COAVAL"/>
+      </viewAttributes>
+      <calculatedViewAttributes/>
+      <input node="#ZFI_AD10">
+        <mapping xsi:type="Calculation:AttributeMapping" target="CHRT_ACCTS" source="CHRT_ACCTS"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="FISCVARNT" source="FISCVARNT"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="FISCYEAR" source="FISCYEAR"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="FISCPER" source="FISCPER"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="RPA_BDD" source="RPA_BDD"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="COMP_CODE" source="COMP_CODE"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="SALES_OFF" source="SALES_OFF"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="COSTCENTER" source="COSTCENTER"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="PLANT" source="PLANT"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="ZFORG" source="ZFORG"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="GL_ACCOUNT" source="GL_ACCOUNT"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="BILL_TYPE" source="BILL_TYPE"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="DOC_CURRCY" source="DOC_CURRCY"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="DEB_CRE_DC" source="DEB_CRE_DC"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="LOC_CURRCY" source="LOC_CURRCY"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="DEB_CRE_LC" source="DEB_CRE_LC"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="PS_COARCUR" source="PS_COARCUR"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="PS_COAVAL" source="PS_COAVAL"/>
+      </input>
+    </calculationView>
+    <calculationView xsi:type="Calculation:UnionView" id="FIGL_Compare">
+      <descriptions/>
+      <viewAttributes>
+        <viewAttribute id="GJAHR"/>
+        <viewAttribute id="FISCYEARPER"/>
+        <viewAttribute id="BUDAT"/>
+        <viewAttribute id="RBUKRS"/>
+        <viewAttribute id="WWVKB_PA"/>
+        <viewAttribute id="RCNTR"/>
+        <viewAttribute id="WERKS"/>
+        <viewAttribute id="RACCT"/>
+        <viewAttribute id="FKART"/>
+        <viewAttribute id="RWCUR"/>
+        <viewAttribute id="RHCUR"/>
+        <viewAttribute id="RKCUR"/>
+        <viewAttribute id="FORG"/>
+        <viewAttribute datatype="DECIMAL" id="ERP_WSL" length="17" scale="3"/>
+        <viewAttribute datatype="DECIMAL" id="ERP_HSL" length="17" scale="3"/>
+        <viewAttribute datatype="DECIMAL" id="ERP_KSL" length="17" scale="3"/>
+        <viewAttribute datatype="DECIMAL" id="BW_WSL" length="17" scale="3"/>
+        <viewAttribute datatype="DECIMAL" id="BW_HSL" length="17" scale="3"/>
+        <viewAttribute datatype="DECIMAL" id="BW_KSL" length="17" scale="3"/>
+      </viewAttributes>
+      <calculatedViewAttributes/>
+      <input emptyUnionBehavior="NO_ROW" node="#ACDOCA_Aggr">
+        <mapping xsi:type="Calculation:AttributeMapping" target="GJAHR" source="GJAHR"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="FISCYEARPER" source="FISCYEARPER"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="BUDAT" source="BUDAT"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="RBUKRS" source="RBUKRS"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="WWVKB_PA" source="WWVKB_PA"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="RCNTR" source="RCNTR"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="WERKS" source="WERKS"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="RACCT" source="RACCT"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="FKART" source="FKART"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="RWCUR" source="RWCUR"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="RHCUR" source="RHCUR"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="RKCUR" source="RKCUR"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="FORG" source="FORG"/>
+        <mapping xsi:type="Calculation:ConstantAttributeMapping" target="BW_WSL" null="true" value=""/>
+        <mapping xsi:type="Calculation:ConstantAttributeMapping" target="BW_HSL" null="true" value=""/>
+        <mapping xsi:type="Calculation:ConstantAttributeMapping" target="BW_KSL" null="true" value=""/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="ERP_WSL" source="WSL"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="ERP_HSL" source="HSL"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="ERP_KSL" source="KSL"/>
+      </input>
+      <input emptyUnionBehavior="NO_ROW" node="#ZFI_AD10_Aggr">
+        <mapping xsi:type="Calculation:AttributeMapping" target="GJAHR" source="FISCYEAR"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="FISCYEARPER" source="FISCPER"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="BUDAT" source="RPA_BDD"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="RBUKRS" source="COMP_CODE"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="WWVKB_PA" source="SALES_OFF"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="RCNTR" source="COSTCENTER"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="WERKS" source="PLANT"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="FORG" source="ZFORG"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="RACCT" source="GL_ACCOUNT"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="FKART" source="BILL_TYPE"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="RWCUR" source="DOC_CURRCY"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="RHCUR" source="LOC_CURRCY"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="RKCUR" source="PS_COARCUR"/>
+        <mapping xsi:type="Calculation:ConstantAttributeMapping" target="ERP_WSL" null="true" value=""/>
+        <mapping xsi:type="Calculation:ConstantAttributeMapping" target="ERP_HSL" null="true" value=""/>
+        <mapping xsi:type="Calculation:ConstantAttributeMapping" target="ERP_KSL" null="true" value=""/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="BW_WSL" source="DEB_CRE_DC"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="BW_HSL" source="DEB_CRE_LC"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="BW_KSL" source="PS_COAVAL"/>
+      </input>
+    </calculationView>
+    <calculationView xsi:type="Calculation:AggregationView" id="FIGL_Compare_Aggr">
+      <descriptions/>
+      <viewAttributes>
+        <viewAttribute id="FORG"/>
+        <viewAttribute id="RKCUR"/>
+        <viewAttribute id="RHCUR"/>
+        <viewAttribute id="RWCUR"/>
+        <viewAttribute id="FKART"/>
+        <viewAttribute id="RACCT"/>
+        <viewAttribute id="WERKS"/>
+        <viewAttribute id="RCNTR"/>
+        <viewAttribute id="WWVKB_PA"/>
+        <viewAttribute id="RBUKRS"/>
+        <viewAttribute id="BUDAT"/>
+        <viewAttribute id="FISCYEARPER"/>
+        <viewAttribute id="GJAHR"/>
+        <viewAttribute id="ERP_WSL"/>
+        <viewAttribute id="ERP_HSL"/>
+        <viewAttribute id="ERP_KSL"/>
+        <viewAttribute id="BW_WSL"/>
+        <viewAttribute id="BW_HSL"/>
+        <viewAttribute id="BW_KSL"/>
+      </viewAttributes>
+      <calculatedViewAttributes/>
+      <input node="#FIGL_Compare">
+        <mapping xsi:type="Calculation:AttributeMapping" target="FORG" source="FORG"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="RKCUR" source="RKCUR"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="RHCUR" source="RHCUR"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="RWCUR" source="RWCUR"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="FKART" source="FKART"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="RACCT" source="RACCT"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="WERKS" source="WERKS"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="RCNTR" source="RCNTR"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="WWVKB_PA" source="WWVKB_PA"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="RBUKRS" source="RBUKRS"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="BUDAT" source="BUDAT"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="FISCYEARPER" source="FISCYEARPER"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="GJAHR" source="GJAHR"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="ERP_WSL" source="ERP_WSL"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="ERP_HSL" source="ERP_HSL"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="ERP_KSL" source="ERP_KSL"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="BW_WSL" source="BW_WSL"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="BW_HSL" source="BW_HSL"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="BW_KSL" source="BW_KSL"/>
+      </input>
+      <filter>&quot;ERP_WSL&quot;!=0&#xD;
+OR &quot;ERP_HSL&quot;!=0&#xD;
+OR &quot;ERP_KSL&quot;!=0&#xD;
+OR &quot;BW_WSL&quot;!=0&#xD;
+OR &quot;BW_HSL&quot;!=0&#xD;
+OR &quot;BW_KSL&quot;!=0</filter>
+    </calculationView>
+  </calculationViews>
+  <logicalModel id="FIGL_Compare_Aggr">
+    <descriptions/>
+    <attributes>
+      <attribute id="FORG" order="1" attributeHierarchyActive="false" displayAttribute="false">
+        <descriptions defaultDescription="FORG"/>
+        <keyMapping columnObjectName="FIGL_Compare_Aggr" columnName="FORG"/>
+      </attribute>
+      <attribute id="RKCUR" order="2" attributeHierarchyActive="false" displayAttribute="false">
+        <descriptions defaultDescription="RKCUR"/>
+        <keyMapping columnObjectName="FIGL_Compare_Aggr" columnName="RKCUR"/>
+      </attribute>
+      <attribute id="RHCUR" order="3" attributeHierarchyActive="false" displayAttribute="false">
+        <descriptions defaultDescription="RHCUR"/>
+        <keyMapping columnObjectName="FIGL_Compare_Aggr" columnName="RHCUR"/>
+      </attribute>
+      <attribute id="RWCUR" order="4" attributeHierarchyActive="false" displayAttribute="false">
+        <descriptions defaultDescription="RWCUR"/>
+        <keyMapping columnObjectName="FIGL_Compare_Aggr" columnName="RWCUR"/>
+      </attribute>
+      <attribute id="FKART" order="5" attributeHierarchyActive="false" displayAttribute="false">
+        <descriptions defaultDescription="FKART"/>
+        <keyMapping columnObjectName="FIGL_Compare_Aggr" columnName="FKART"/>
+      </attribute>
+      <attribute id="RACCT" order="6" attributeHierarchyActive="false" displayAttribute="false">
+        <descriptions defaultDescription="RACCT"/>
+        <keyMapping columnObjectName="FIGL_Compare_Aggr" columnName="RACCT"/>
+      </attribute>
+      <attribute id="WERKS" order="7" attributeHierarchyActive="false" displayAttribute="false">
+        <descriptions defaultDescription="WERKS"/>
+        <keyMapping columnObjectName="FIGL_Compare_Aggr" columnName="WERKS"/>
+      </attribute>
+      <attribute id="RCNTR" order="8" attributeHierarchyActive="false" displayAttribute="false">
+        <descriptions defaultDescription="RCNTR"/>
+        <keyMapping columnObjectName="FIGL_Compare_Aggr" columnName="RCNTR"/>
+      </attribute>
+      <attribute id="WWVKB_PA" order="9" attributeHierarchyActive="false" displayAttribute="false">
+        <descriptions defaultDescription="WWVKB_PA"/>
+        <keyMapping columnObjectName="FIGL_Compare_Aggr" columnName="WWVKB_PA"/>
+      </attribute>
+      <attribute id="RBUKRS" order="10" attributeHierarchyActive="false" displayAttribute="false">
+        <descriptions defaultDescription="RBUKRS"/>
+        <keyMapping columnObjectName="FIGL_Compare_Aggr" columnName="RBUKRS"/>
+      </attribute>
+      <attribute id="BUDAT" order="11" semanticType="date" attributeHierarchyActive="false" displayAttribute="false">
+        <descriptions defaultDescription="BUDAT"/>
+        <keyMapping columnObjectName="FIGL_Compare_Aggr" columnName="BUDAT"/>
+      </attribute>
+      <attribute id="FISCYEARPER" order="12" attributeHierarchyActive="false" displayAttribute="false">
+        <descriptions defaultDescription="FISCYEARPER"/>
+        <keyMapping columnObjectName="FIGL_Compare_Aggr" columnName="FISCYEARPER"/>
+      </attribute>
+      <attribute id="GJAHR" order="13" attributeHierarchyActive="false" displayAttribute="false">
+        <descriptions defaultDescription="GJAHR"/>
+        <keyMapping columnObjectName="FIGL_Compare_Aggr" columnName="GJAHR"/>
+      </attribute>
+    </attributes>
+    <calculatedAttributes/>
+    <privateDataFoundation>
+      <tableProxies/>
+      <joins/>
+      <layout>
+        <shapes/>
+      </layout>
+    </privateDataFoundation>
+    <baseMeasures>
+      <measure id="ERP_WSL" order="14" aggregationType="sum" measureType="simple">
+        <descriptions defaultDescription="ERP_WSL"/>
+        <measureMapping columnObjectName="FIGL_Compare_Aggr" columnName="ERP_WSL"/>
+      </measure>
+      <measure id="ERP_HSL" order="15" aggregationType="sum" measureType="simple">
+        <descriptions defaultDescription="ERP_HSL"/>
+        <measureMapping columnObjectName="FIGL_Compare_Aggr" columnName="ERP_HSL"/>
+      </measure>
+      <measure id="ERP_KSL" order="16" aggregationType="sum" measureType="simple">
+        <descriptions defaultDescription="ERP_KSL"/>
+        <measureMapping columnObjectName="FIGL_Compare_Aggr" columnName="ERP_KSL"/>
+      </measure>
+      <measure id="BW_WSL" order="17" aggregationType="sum" measureType="simple">
+        <descriptions defaultDescription="BW_WSL"/>
+        <measureMapping columnObjectName="FIGL_Compare_Aggr" columnName="BW_WSL"/>
+      </measure>
+      <measure id="BW_HSL" order="18" aggregationType="sum" measureType="simple">
+        <descriptions defaultDescription="BW_HSL"/>
+        <measureMapping columnObjectName="FIGL_Compare_Aggr" columnName="BW_HSL"/>
+      </measure>
+      <measure id="BW_KSL" order="19" aggregationType="sum" measureType="simple">
+        <descriptions defaultDescription="BW_KSL"/>
+        <measureMapping columnObjectName="FIGL_Compare_Aggr" columnName="BW_KSL"/>
+      </measure>
+    </baseMeasures>
+    <calculatedMeasures/>
+    <restrictedMeasures/>
+    <localDimensions/>
+  </logicalModel>
+  <layout>
+    <shapes>
+      <shape expanded="true" modelObjectName="Output" modelObjectNameSpace="MeasureGroup">
+        <upperLeftCorner x="99" y="87"/>
+        <rectangleSize height="0" width="0"/>
+      </shape>
+      <shape expanded="true" modelObjectName="ACDOCA" modelObjectNameSpace="CalculationView">
+        <upperLeftCorner x="22" y="437"/>
+        <rectangleSize height="-1" width="-1"/>
+      </shape>
+      <shape expanded="true" modelObjectName="ACDOCA_Aggr" modelObjectNameSpace="CalculationView">
+        <upperLeftCorner x="22" y="359"/>
+        <rectangleSize height="-1" width="-1"/>
+      </shape>
+      <shape expanded="true" modelObjectName="ZFI_AD10" modelObjectNameSpace="CalculationView">
+        <upperLeftCorner x="181" y="437"/>
+        <rectangleSize height="64" width="131"/>
+      </shape>
+      <shape expanded="true" modelObjectName="ZFI_AD10_Aggr" modelObjectNameSpace="CalculationView">
+        <upperLeftCorner x="176" y="359"/>
+        <rectangleSize height="-1" width="-1"/>
+      </shape>
+      <shape expanded="true" modelObjectName="FIGL_Compare" modelObjectNameSpace="CalculationView">
+        <upperLeftCorner x="99" y="243"/>
+        <rectangleSize height="0" width="0"/>
+      </shape>
+      <shape expanded="true" modelObjectName="FIGL_Compare_Aggr" modelObjectNameSpace="CalculationView">
+        <upperLeftCorner x="99" y="165"/>
+        <rectangleSize height="0" width="0"/>
+      </shape>
+    </shapes>
+  </layout>
+</Calculation:scenario>
