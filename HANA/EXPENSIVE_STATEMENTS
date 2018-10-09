@@ -1,0 +1,521 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Calculation:scenario xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:Calculation="http://www.sap.com/ndb/BiModelCalculation.ecore" schemaVersion="2.3" id="CV_EXPENSIVE_STATEMENTS" applyPrivilegeType="NONE" checkAnalyticPrivileges="false" defaultClient="$$client$$" defaultLanguage="$$language$$" hierarchiesSQLEnabled="false" translationRelevant="true" visibility="reportingEnabled" calculationScenarioType="TREE_BASED" dataCategory="CUBE" enforceSqlExecution="false" executionSemantic="UNDEFINED" outputViewType="Aggregation">
+  <origin/>
+  <descriptions defaultDescription="CV_EXPENSIVE_STATEMENTS"/>
+  <metadata changedAt="2018-09-13 09:22:30.925"/>
+  <localVariables/>
+  <variableMappings/>
+  <informationModelLayout relativeWidthScenario="33"/>
+  <dataSources>
+    <DataSource id="M_EXPENSIVE_STATEMENTS" type="DATA_BASE_VIEW">
+      <viewAttributes allViewAttributes="true"/>
+      <columnObject schemaName="SYS" columnObjectName="M_EXPENSIVE_STATEMENTS"/>
+    </DataSource>
+    <DataSource id="M_LOAD_HISTORY_SERVICE" type="DATA_BASE_VIEW">
+      <viewAttributes allViewAttributes="true"/>
+      <columnObject schemaName="SYS" columnObjectName="M_LOAD_HISTORY_SERVICE"/>
+    </DataSource>
+  </dataSources>
+  <calculationViews>
+    <calculationView xsi:type="Calculation:ProjectionView" id="ExpensiveStatements" filterExpressionLanguage="COLUMN_ENGINE">
+      <descriptions/>
+      <viewAttributes>
+        <viewAttribute id="HOST"/>
+        <viewAttribute id="STATEMENT_START_TIME"/>
+        <viewAttribute id="APP_USER"/>
+        <viewAttribute id="DB_USER"/>
+        <viewAttribute id="SCHEMA_NAME"/>
+        <viewAttribute id="MEMORY_SIZE"/>
+        <viewAttribute id="STATEMENT_MEMORY_LIMIT"/>
+        <viewAttribute id="REUSED_MEMORY_SIZE"/>
+        <viewAttribute id="CPU_TIME"/>
+        <viewAttribute id="DURATION_MICROSEC"/>
+        <viewAttribute id="PRIORITY"/>
+        <viewAttribute id="PASSPORT_ROOT_CONTEXT_ID"/>
+        <viewAttribute id="OBJECT_NAME"/>
+        <viewAttribute id="OPERATION"/>
+        <viewAttribute id="_STATEMENT_STRING"/>
+        <viewAttribute id="ERROR_CODE"/>
+        <viewAttribute id="ERROR_TEXT"/>
+        <viewAttribute id="STATEMENT_THREAD_LIMIT"/>
+        <viewAttribute id="APPLICATION_SOURCE"/>
+        <viewAttribute id="APPLICATION_NAME"/>
+      </viewAttributes>
+      <calculatedViewAttributes>
+        <calculatedViewAttribute datatype="VARCHAR" id="ES_SizeType" length="10" expressionLanguage="SQL">
+          <formula>CASE&#xD;
+   WHEN ROUND(MEMORY_SIZE/1024/1024/1024,3) > 200 THEN 'LARGE'&#xD;
+   WHEN ROUND(MEMORY_SIZE/1024/1024/1024,3) &lt; 200 AND ROUND(MEMORY_SIZE/1024/1024/1024,3)> 50 THEN 'MEDIUM'&#xD;
+   WHEN ROUND(MEMORY_SIZE/1024/1024/1024,3) &lt; 50 AND ROUND(MEMORY_SIZE/1024/1024/1024,3)> 1 THEN 'SMALL'&#xD;
+ ELSE 'VERYSMALL'&#xD;
+END</formula>
+        </calculatedViewAttribute>
+        <calculatedViewAttribute datatype="DATE" id="Date" expressionLanguage="COLUMN_ENGINE">
+          <formula>&quot;STATEMENT_START_TIME&quot;</formula>
+        </calculatedViewAttribute>
+        <calculatedViewAttribute datatype="NVARCHAR" id="Hour" length="2" expressionLanguage="COLUMN_ENGINE">
+          <formula>format(&quot;STATEMENT_START_TIME&quot;,'HH24')</formula>
+        </calculatedViewAttribute>
+        <calculatedViewAttribute datatype="NVARCHAR" id="Quarter" length="2" expressionLanguage="COLUMN_ENGINE">
+          <formula>if((&quot;Minute&quot;>='0' and &quot;Minute&quot;&lt;'15'),'00',&#xD;
+if((&quot;Minute&quot;>='15' and &quot;Minute&quot;&lt;'30'),'15',&#xD;
+if((&quot;Minute&quot;>='30' and &quot;Minute&quot;&lt;'45'),'30','45')))</formula>
+        </calculatedViewAttribute>
+        <calculatedViewAttribute datatype="NVARCHAR" id="Minute" length="2" expressionLanguage="COLUMN_ENGINE">
+          <formula>component(&quot;STATEMENT_START_TIME&quot;,5)</formula>
+        </calculatedViewAttribute>
+        <calculatedViewAttribute datatype="DECIMAL" id="ES_AvgMemory_Size_GB" length="20" scale="3" expressionLanguage="SQL">
+          <formula>ROUND(&quot;MEMORY_SIZE&quot;/1024/1024/1024,3)</formula>
+        </calculatedViewAttribute>
+        <calculatedViewAttribute datatype="DECIMAL" id="ES_MaxMemory_Size_GB" length="20" scale="3" expressionLanguage="SQL">
+          <formula>ROUND(&quot;MEMORY_SIZE&quot;/1024/1024/1024,3)</formula>
+        </calculatedViewAttribute>
+        <calculatedViewAttribute datatype="DECIMAL" id="ES_AvgPct_Limit" length="20" scale="3" expressionLanguage="SQL">
+          <formula>ROUND((&quot;MEMORY_SIZE&quot;/1024/1024/1024)/&quot;STATEMENT_MEMORY_LIMIT&quot;,3)</formula>
+        </calculatedViewAttribute>
+        <calculatedViewAttribute datatype="DECIMAL" id="ES_MaxPct_Limit" length="20" scale="3" expressionLanguage="SQL">
+          <formula>ROUND((&quot;MEMORY_SIZE&quot;/1024/1024/1024)/&quot;STATEMENT_MEMORY_LIMIT&quot;,3)</formula>
+        </calculatedViewAttribute>
+        <calculatedViewAttribute datatype="DECIMAL" id="ES_AvgDuration_Sec" length="20" scale="3" expressionLanguage="SQL">
+          <formula>ROUND(&quot;DURATION_MICROSEC&quot;/1000000,3)</formula>
+        </calculatedViewAttribute>
+        <calculatedViewAttribute datatype="DECIMAL" id="ES_AvgCPU_Time_Sec" length="20" scale="3" expressionLanguage="COLUMN_ENGINE">
+          <formula>&quot;CPU_TIME&quot;/1000000</formula>
+        </calculatedViewAttribute>
+        <calculatedViewAttribute datatype="NVARCHAR" id="STATEMENT_STRING" length="500" expressionLanguage="COLUMN_ENGINE">
+          <formula>&quot;_STATEMENT_STRING&quot;</formula>
+        </calculatedViewAttribute>
+      </calculatedViewAttributes>
+      <input node="#M_EXPENSIVE_STATEMENTS">
+        <mapping xsi:type="Calculation:AttributeMapping" target="HOST" source="HOST"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="STATEMENT_START_TIME" source="STATEMENT_START_TIME"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="APP_USER" source="APP_USER"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="DB_USER" source="DB_USER"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="SCHEMA_NAME" source="SCHEMA_NAME"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="MEMORY_SIZE" source="MEMORY_SIZE"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="STATEMENT_MEMORY_LIMIT" source="STATEMENT_MEMORY_LIMIT"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="REUSED_MEMORY_SIZE" source="REUSED_MEMORY_SIZE"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="CPU_TIME" source="CPU_TIME"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="DURATION_MICROSEC" source="DURATION_MICROSEC"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="PRIORITY" source="PRIORITY"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="PASSPORT_ROOT_CONTEXT_ID" source="PASSPORT_ROOT_CONTEXT_ID"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="OBJECT_NAME" source="OBJECT_NAME"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="OPERATION" source="OPERATION"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="_STATEMENT_STRING" source="STATEMENT_STRING"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="ERROR_CODE" source="ERROR_CODE"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="ERROR_TEXT" source="ERROR_TEXT"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="STATEMENT_THREAD_LIMIT" source="STATEMENT_THREAD_LIMIT"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="APPLICATION_SOURCE" source="APPLICATION_SOURCE"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="APPLICATION_NAME" source="APPLICATION_NAME"/>
+      </input>
+      <filter>&quot;ES_SizeType&quot; != 'VERYSMALL'</filter>
+    </calculationView>
+    <calculationView xsi:type="Calculation:ProjectionView" id="LoadHistory">
+      <descriptions/>
+      <viewAttributes>
+        <viewAttribute id="HOST"/>
+        <viewAttribute id="TIME"/>
+        <viewAttribute id="CPU"/>
+        <viewAttribute id="MEMORY_USED"/>
+        <viewAttribute id="MEMORY_ALLOCATION_LIMIT"/>
+        <viewAttribute id="CONNECTION_COUNT"/>
+        <viewAttribute id="ACTIVE_THREAD_COUNT"/>
+      </viewAttributes>
+      <calculatedViewAttributes>
+        <calculatedViewAttribute datatype="DATE" id="Date" expressionLanguage="COLUMN_ENGINE">
+          <formula>&quot;TIME&quot;</formula>
+        </calculatedViewAttribute>
+        <calculatedViewAttribute datatype="NVARCHAR" id="Hour" length="2" expressionLanguage="COLUMN_ENGINE">
+          <formula>format(&quot;TIME&quot;,'HH24')</formula>
+        </calculatedViewAttribute>
+        <calculatedViewAttribute datatype="NVARCHAR" id="Quarter" length="2" expressionLanguage="COLUMN_ENGINE">
+          <formula>if((&quot;Minute&quot;>='0' and &quot;Minute&quot;&lt;'15'),'00',&#xD;
+if((&quot;Minute&quot;>='15' and &quot;Minute&quot;&lt;'30'),'15',&#xD;
+if((&quot;Minute&quot;>='30' and &quot;Minute&quot;&lt;'45'),'30','45')))</formula>
+        </calculatedViewAttribute>
+        <calculatedViewAttribute datatype="NVARCHAR" id="Minute" length="2" expressionLanguage="COLUMN_ENGINE">
+          <formula>component(&quot;TIME&quot;,5)</formula>
+        </calculatedViewAttribute>
+        <calculatedViewAttribute datatype="BIGINT" id="LH_AvgCPU" expressionLanguage="COLUMN_ENGINE">
+          <formula>&quot;CPU&quot;</formula>
+        </calculatedViewAttribute>
+        <calculatedViewAttribute datatype="BIGINT" id="LH_MaxCPU" expressionLanguage="COLUMN_ENGINE">
+          <formula>&quot;CPU&quot;</formula>
+        </calculatedViewAttribute>
+        <calculatedViewAttribute datatype="FLOAT" id="LH_AvgMemory" length="30" expressionLanguage="COLUMN_ENGINE">
+          <formula>round((&quot;MEMORY_USED&quot;/ 1024 / 1024 / 1024),0)</formula>
+        </calculatedViewAttribute>
+        <calculatedViewAttribute datatype="DECIMAL" id="LH_AvgMemoryPct" length="3" scale="1" expressionLanguage="COLUMN_ENGINE">
+          <formula>if(&quot;LH_MemoryAllocation&quot;>0,round((&quot;LH_AvgMemory&quot;/&quot;LH_MemoryAllocation&quot;*100),1),0)</formula>
+        </calculatedViewAttribute>
+        <calculatedViewAttribute datatype="FLOAT" id="LH_MaxMemory" length="30" expressionLanguage="COLUMN_ENGINE">
+          <formula>round((&quot;MEMORY_USED&quot;/ 1024 / 1024 / 1024),0)</formula>
+        </calculatedViewAttribute>
+        <calculatedViewAttribute datatype="DECIMAL" id="LH_MaxMemoryPct" length="3" scale="1" expressionLanguage="COLUMN_ENGINE">
+          <formula>if(&quot;LH_MemoryAllocation&quot;>0,round((&quot;LH_MaxMemory&quot;/&quot;LH_MemoryAllocation&quot;*100),1),0)</formula>
+        </calculatedViewAttribute>
+        <calculatedViewAttribute datatype="FLOAT" id="LH_MinMemory" length="30" expressionLanguage="COLUMN_ENGINE">
+          <formula>round((&quot;MEMORY_USED&quot;/ 1024 / 1024 / 1024),0)</formula>
+        </calculatedViewAttribute>
+        <calculatedViewAttribute datatype="FLOAT" id="LH_MemoryAllocation" length="30" expressionLanguage="COLUMN_ENGINE">
+          <formula>round((&quot;MEMORY_ALLOCATION_LIMIT&quot;/ 1024 / 1024 / 1024),0)</formula>
+        </calculatedViewAttribute>
+        <calculatedViewAttribute datatype="BIGINT" id="LH_AvgConnectionCount" expressionLanguage="COLUMN_ENGINE">
+          <formula>&quot;CONNECTION_COUNT&quot;</formula>
+        </calculatedViewAttribute>
+        <calculatedViewAttribute datatype="BIGINT" id="LH_MaxConnectionCount" expressionLanguage="COLUMN_ENGINE">
+          <formula>&quot;CONNECTION_COUNT&quot;</formula>
+        </calculatedViewAttribute>
+        <calculatedViewAttribute datatype="FLOAT" id="LH_AvgActiveThread" length="30" expressionLanguage="COLUMN_ENGINE">
+          <formula>&quot;ACTIVE_THREAD_COUNT&quot;</formula>
+        </calculatedViewAttribute>
+        <calculatedViewAttribute datatype="FLOAT" id="LH_MaxActiveThread" length="30" expressionLanguage="COLUMN_ENGINE">
+          <formula>&quot;ACTIVE_THREAD_COUNT&quot;</formula>
+        </calculatedViewAttribute>
+      </calculatedViewAttributes>
+      <input node="#M_LOAD_HISTORY_SERVICE">
+        <mapping xsi:type="Calculation:AttributeMapping" target="HOST" source="HOST"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="TIME" source="TIME"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="CPU" source="CPU"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="MEMORY_USED" source="MEMORY_USED"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="MEMORY_ALLOCATION_LIMIT" source="MEMORY_ALLOCATION_LIMIT"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="CONNECTION_COUNT" source="CONNECTION_COUNT"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="ACTIVE_THREAD_COUNT" source="ACTIVE_THREAD_COUNT"/>
+      </input>
+    </calculationView>
+    <calculationView xsi:type="Calculation:UnionView" id="Union">
+      <descriptions/>
+      <viewAttributes>
+        <viewAttribute datatype="VARCHAR" id="SOURCE" length="30"/>
+        <viewAttribute id="HOST" transparentFilter="false"/>
+        <viewAttribute id="Date" transparentFilter="false"/>
+        <viewAttribute id="Hour" transparentFilter="false"/>
+        <viewAttribute id="Quarter" transparentFilter="false"/>
+        <viewAttribute id="Minute" transparentFilter="false"/>
+        <viewAttribute id="STATEMENT_START_TIME" transparentFilter="false"/>
+        <viewAttribute id="ES_SizeType" transparentFilter="false"/>
+        <viewAttribute datatype="NVARCHAR" id="APP_USER" length="256" scale="0" transparentFilter="false"/>
+        <viewAttribute datatype="NVARCHAR" id="DB_USER" length="256" scale="0" transparentFilter="false"/>
+        <viewAttribute id="SCHEMA_NAME" transparentFilter="false"/>
+        <viewAttribute id="PRIORITY" transparentFilter="false"/>
+        <viewAttribute id="PASSPORT_ROOT_CONTEXT_ID" transparentFilter="false"/>
+        <viewAttribute id="ES_AvgMemory_Size_GB" transparentFilter="false"/>
+        <viewAttribute id="ES_MaxMemory_Size_GB" transparentFilter="false"/>
+        <viewAttribute id="ES_AvgPct_Limit" transparentFilter="false"/>
+        <viewAttribute id="ES_MaxPct_Limit" transparentFilter="false"/>
+        <viewAttribute id="ES_AvgDuration_Sec" transparentFilter="false"/>
+        <viewAttribute id="ES_AvgCPU_Time_Sec" transparentFilter="false"/>
+        <viewAttribute id="LH_AvgCPU" transparentFilter="false"/>
+        <viewAttribute id="LH_MaxCPU" transparentFilter="false"/>
+        <viewAttribute id="LH_AvgMemory" transparentFilter="false"/>
+        <viewAttribute id="LH_MaxMemory" transparentFilter="false"/>
+        <viewAttribute id="LH_MinMemory" transparentFilter="false"/>
+        <viewAttribute id="LH_MemoryAllocation" transparentFilter="false"/>
+        <viewAttribute id="LH_AvgConnectionCount" transparentFilter="false"/>
+        <viewAttribute id="LH_MaxConnectionCount" transparentFilter="false"/>
+        <viewAttribute id="LH_AvgActiveThread" transparentFilter="false"/>
+        <viewAttribute id="LH_MaxActiveThread" transparentFilter="false"/>
+        <viewAttribute id="LH_MaxMemoryPct" transparentFilter="false"/>
+        <viewAttribute id="LH_AvgMemoryPct"/>
+        <viewAttribute id="OBJECT_NAME"/>
+        <viewAttribute id="OPERATION"/>
+        <viewAttribute id="STATEMENT_STRING"/>
+        <viewAttribute id="ERROR_CODE"/>
+        <viewAttribute id="ERROR_TEXT"/>
+        <viewAttribute id="STATEMENT_THREAD_LIMIT"/>
+        <viewAttribute id="APPLICATION_SOURCE"/>
+        <viewAttribute id="APPLICATION_NAME"/>
+      </viewAttributes>
+      <calculatedViewAttributes/>
+      <input emptyUnionBehavior="NO_ROW" node="#ExpensiveStatements">
+        <mapping xsi:type="Calculation:ConstantAttributeMapping" target="SOURCE" null="false" value="M_EXPENSIVE_STATEMENTS"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="HOST" source="HOST"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="Date" source="Date"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="Hour" source="Hour"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="Quarter" source="Quarter"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="Minute" source="Minute"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="STATEMENT_START_TIME" source="STATEMENT_START_TIME"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="ES_SizeType" source="ES_SizeType"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="APP_USER" source="APP_USER"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="DB_USER" source="DB_USER"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="SCHEMA_NAME" source="SCHEMA_NAME"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="PRIORITY" source="PRIORITY"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="PASSPORT_ROOT_CONTEXT_ID" source="PASSPORT_ROOT_CONTEXT_ID"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="ES_AvgMemory_Size_GB" source="ES_AvgMemory_Size_GB"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="ES_MaxMemory_Size_GB" source="ES_MaxMemory_Size_GB"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="ES_AvgPct_Limit" source="ES_AvgPct_Limit"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="ES_MaxPct_Limit" source="ES_MaxPct_Limit"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="ES_AvgDuration_Sec" source="ES_AvgDuration_Sec"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="ES_AvgCPU_Time_Sec" source="ES_AvgCPU_Time_Sec"/>
+        <mapping xsi:type="Calculation:ConstantAttributeMapping" target="LH_AvgCPU" null="true" value=""/>
+        <mapping xsi:type="Calculation:ConstantAttributeMapping" target="LH_MaxCPU" null="true" value=""/>
+        <mapping xsi:type="Calculation:ConstantAttributeMapping" target="LH_AvgMemory" null="true" value=""/>
+        <mapping xsi:type="Calculation:ConstantAttributeMapping" target="LH_MaxMemory" null="true" value=""/>
+        <mapping xsi:type="Calculation:ConstantAttributeMapping" target="LH_MinMemory" null="true" value=""/>
+        <mapping xsi:type="Calculation:ConstantAttributeMapping" target="LH_MemoryAllocation" null="true" value=""/>
+        <mapping xsi:type="Calculation:ConstantAttributeMapping" target="LH_AvgConnectionCount" null="true" value=""/>
+        <mapping xsi:type="Calculation:ConstantAttributeMapping" target="LH_MaxConnectionCount" null="true" value=""/>
+        <mapping xsi:type="Calculation:ConstantAttributeMapping" target="LH_AvgActiveThread" null="true" value=""/>
+        <mapping xsi:type="Calculation:ConstantAttributeMapping" target="LH_MaxActiveThread" null="true" value=""/>
+        <mapping xsi:type="Calculation:ConstantAttributeMapping" target="LH_MaxMemoryPct" null="true" value=""/>
+        <mapping xsi:type="Calculation:ConstantAttributeMapping" target="LH_AvgMemoryPct" null="true" value=""/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="OBJECT_NAME" source="OBJECT_NAME"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="OPERATION" source="OPERATION"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="STATEMENT_STRING" source="STATEMENT_STRING"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="ERROR_CODE" source="ERROR_CODE"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="ERROR_TEXT" source="ERROR_TEXT"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="STATEMENT_THREAD_LIMIT" source="STATEMENT_THREAD_LIMIT"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="APPLICATION_SOURCE" source="APPLICATION_SOURCE"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="APPLICATION_NAME" source="APPLICATION_NAME"/>
+      </input>
+      <input emptyUnionBehavior="NO_ROW" node="#LoadHistory">
+        <mapping xsi:type="Calculation:ConstantAttributeMapping" target="SOURCE" null="false" value="M_LOAD_HISTORY_SERVICE"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="HOST" source="HOST"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="Date" source="Date"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="Hour" source="Hour"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="Quarter" source="Quarter"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="Minute" source="Minute"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="STATEMENT_START_TIME" source="TIME"/>
+        <mapping xsi:type="Calculation:ConstantAttributeMapping" target="ES_SizeType" null="true" value=""/>
+        <mapping xsi:type="Calculation:ConstantAttributeMapping" target="APP_USER" null="false" value="Load_History"/>
+        <mapping xsi:type="Calculation:ConstantAttributeMapping" target="DB_USER" null="false" value="Load_History"/>
+        <mapping xsi:type="Calculation:ConstantAttributeMapping" target="SCHEMA_NAME" null="true" value=""/>
+        <mapping xsi:type="Calculation:ConstantAttributeMapping" target="PRIORITY" null="true" value=""/>
+        <mapping xsi:type="Calculation:ConstantAttributeMapping" target="PASSPORT_ROOT_CONTEXT_ID" null="true" value=""/>
+        <mapping xsi:type="Calculation:ConstantAttributeMapping" target="ES_AvgMemory_Size_GB" null="true" value=""/>
+        <mapping xsi:type="Calculation:ConstantAttributeMapping" target="ES_MaxMemory_Size_GB" null="true" value=""/>
+        <mapping xsi:type="Calculation:ConstantAttributeMapping" target="ES_AvgPct_Limit" null="true" value=""/>
+        <mapping xsi:type="Calculation:ConstantAttributeMapping" target="ES_MaxPct_Limit" null="true" value=""/>
+        <mapping xsi:type="Calculation:ConstantAttributeMapping" target="ES_AvgDuration_Sec" null="true" value=""/>
+        <mapping xsi:type="Calculation:ConstantAttributeMapping" target="ES_AvgCPU_Time_Sec" null="true" value=""/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="LH_AvgCPU" source="LH_AvgCPU"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="LH_MaxCPU" source="LH_MaxCPU"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="LH_AvgMemory" source="LH_AvgMemory"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="LH_MaxMemory" source="LH_MaxMemory"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="LH_MinMemory" source="LH_MinMemory"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="LH_MemoryAllocation" source="LH_MemoryAllocation"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="LH_AvgConnectionCount" source="LH_AvgConnectionCount"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="LH_MaxConnectionCount" source="LH_MaxConnectionCount"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="LH_AvgActiveThread" source="LH_AvgActiveThread"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="LH_MaxActiveThread" source="LH_MaxActiveThread"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="LH_MaxMemoryPct" source="LH_MaxMemoryPct"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="LH_AvgMemoryPct" source="LH_AvgMemoryPct"/>
+        <mapping xsi:type="Calculation:ConstantAttributeMapping" target="OBJECT_NAME" null="true" value=""/>
+        <mapping xsi:type="Calculation:ConstantAttributeMapping" target="OPERATION" null="true" value=""/>
+        <mapping xsi:type="Calculation:ConstantAttributeMapping" target="STATEMENT_STRING" null="true" value=""/>
+        <mapping xsi:type="Calculation:ConstantAttributeMapping" target="ERROR_CODE" null="true" value=""/>
+        <mapping xsi:type="Calculation:ConstantAttributeMapping" target="ERROR_TEXT" null="true" value=""/>
+        <mapping xsi:type="Calculation:ConstantAttributeMapping" target="STATEMENT_THREAD_LIMIT" null="true" value=""/>
+        <mapping xsi:type="Calculation:ConstantAttributeMapping" target="APPLICATION_SOURCE" null="true" value=""/>
+        <mapping xsi:type="Calculation:ConstantAttributeMapping" target="APPLICATION_NAME" null="true" value=""/>
+      </input>
+    </calculationView>
+  </calculationViews>
+  <logicalModel id="Union">
+    <descriptions/>
+    <attributes>
+      <attribute id="SOURCE" order="1" attributeHierarchyActive="false" displayAttribute="false">
+        <descriptions defaultDescription="SOURCE"/>
+        <keyMapping columnObjectName="Union" columnName="SOURCE"/>
+      </attribute>
+      <attribute id="HOST" order="2" attributeHierarchyActive="false" displayAttribute="false" transparentFilter="false">
+        <descriptions defaultDescription="Host name"/>
+        <keyMapping columnObjectName="Union" columnName="HOST"/>
+      </attribute>
+      <attribute id="Date" order="3" attributeHierarchyActive="false" displayAttribute="false" transparentFilter="false">
+        <descriptions defaultDescription="Date"/>
+        <keyMapping columnObjectName="Union" columnName="Date"/>
+      </attribute>
+      <attribute id="Hour" order="4" attributeHierarchyActive="false" displayAttribute="false" transparentFilter="false">
+        <descriptions defaultDescription="Hour"/>
+        <keyMapping columnObjectName="Union" columnName="Hour"/>
+      </attribute>
+      <attribute id="Quarter" order="5" attributeHierarchyActive="false" displayAttribute="false" transparentFilter="false">
+        <descriptions defaultDescription="Quarter"/>
+        <keyMapping columnObjectName="Union" columnName="Quarter"/>
+      </attribute>
+      <attribute id="Minute" order="6" attributeHierarchyActive="false" displayAttribute="false" transparentFilter="false">
+        <descriptions defaultDescription="Minute"/>
+        <keyMapping columnObjectName="Union" columnName="Minute"/>
+      </attribute>
+      <attribute id="START_TIME" order="7" attributeHierarchyActive="false" displayAttribute="false" transparentFilter="false">
+        <descriptions defaultDescription="START_TIME"/>
+        <keyMapping columnObjectName="Union" columnName="STATEMENT_START_TIME"/>
+      </attribute>
+      <attribute id="ES_SizeType" order="8" attributeHierarchyActive="false" displayAttribute="false" transparentFilter="false">
+        <descriptions defaultDescription="ES_SizeType"/>
+        <keyMapping columnObjectName="Union" columnName="ES_SizeType"/>
+      </attribute>
+      <attribute id="APP_USER" order="9" attributeHierarchyActive="false" displayAttribute="false" transparentFilter="false">
+        <descriptions defaultDescription="APP_USER"/>
+        <keyMapping columnObjectName="Union" columnName="APP_USER"/>
+      </attribute>
+      <attribute id="DB_USER" order="10" attributeHierarchyActive="false" displayAttribute="false" transparentFilter="false">
+        <descriptions defaultDescription="DB_USER"/>
+        <keyMapping columnObjectName="Union" columnName="DB_USER"/>
+      </attribute>
+      <attribute id="SCHEMA_NAME" order="11" attributeHierarchyActive="false" displayAttribute="false" transparentFilter="false">
+        <descriptions defaultDescription="SCHEMA_NAME"/>
+        <keyMapping columnObjectName="Union" columnName="SCHEMA_NAME"/>
+      </attribute>
+      <attribute id="PRIORITY" order="12" attributeHierarchyActive="false" displayAttribute="false" transparentFilter="false">
+        <descriptions defaultDescription="PRIORITY"/>
+        <keyMapping columnObjectName="Union" columnName="PRIORITY"/>
+      </attribute>
+      <attribute id="PASSPORT_ROOT_CONTEXT_ID" order="13" attributeHierarchyActive="false" displayAttribute="false" transparentFilter="false">
+        <descriptions defaultDescription="PASSPORT_ROOT_CONTEXT_ID"/>
+        <keyMapping columnObjectName="Union" columnName="PASSPORT_ROOT_CONTEXT_ID"/>
+      </attribute>
+      <attribute id="OBJECT_NAME" order="34" semanticType="empty" attributeHierarchyActive="false" displayAttribute="false">
+        <descriptions defaultDescription="Related objects"/>
+        <keyMapping columnObjectName="Union" columnName="OBJECT_NAME"/>
+      </attribute>
+      <attribute id="OPERATION" order="35" semanticType="empty" attributeHierarchyActive="false" displayAttribute="false">
+        <descriptions defaultDescription="Type of operation: e.g. prepare, execute, fetch, close"/>
+        <keyMapping columnObjectName="Union" columnName="OPERATION"/>
+      </attribute>
+      <attribute id="STATEMENT_STRING" order="36" semanticType="empty" attributeHierarchyActive="false" displayAttribute="false">
+        <descriptions defaultDescription="Statement string"/>
+        <keyMapping columnObjectName="Union" columnName="STATEMENT_STRING"/>
+      </attribute>
+      <attribute id="ERROR_CODE" order="37" attributeHierarchyActive="false" displayAttribute="false">
+        <descriptions defaultDescription="Error code"/>
+        <keyMapping columnObjectName="Union" columnName="ERROR_CODE"/>
+      </attribute>
+      <attribute id="ERROR_TEXT" order="38" semanticType="empty" attributeHierarchyActive="false" displayAttribute="false">
+        <descriptions defaultDescription="Error message"/>
+        <keyMapping columnObjectName="Union" columnName="ERROR_TEXT"/>
+      </attribute>
+      <attribute id="STATEMENT_THREAD_LIMIT" order="39" attributeHierarchyActive="false" displayAttribute="false">
+        <descriptions defaultDescription="Effective statement thread limit"/>
+        <keyMapping columnObjectName="Union" columnName="STATEMENT_THREAD_LIMIT"/>
+      </attribute>
+      <attribute id="APPLICATION_SOURCE" order="40" semanticType="empty" attributeHierarchyActive="false" displayAttribute="false">
+        <descriptions defaultDescription="Application can define from which source file SAP HANA is called. Usage is up to the application. Value also displayed in M_PREPARED_STATEMENTS.APPLICATION_SOURCE"/>
+        <keyMapping columnObjectName="Union" columnName="APPLICATION_SOURCE"/>
+      </attribute>
+      <attribute id="APPLICATION_NAME" order="41" semanticType="empty" attributeHierarchyActive="false" displayAttribute="false">
+        <descriptions defaultDescription="Name of the application"/>
+        <keyMapping columnObjectName="Union" columnName="APPLICATION_NAME"/>
+      </attribute>
+    </attributes>
+    <calculatedAttributes>
+      <calculatedAttribute id="Date_Quarter" hidden="false" order="32" semanticType="empty" attributeHierarchyActive="false" displayAttribute="false">
+        <descriptions defaultDescription="Date_Quarter"/>
+        <keyCalculation datatype="TIMESTAMP" expressionLanguage="COLUMN_ENGINE">
+          <formula>longdate(string(&quot;Date&quot;) + string(' ') + string(&quot;Hour&quot;)+string(':')+string(&quot;Quarter&quot;))</formula>
+        </keyCalculation>
+      </calculatedAttribute>
+      <calculatedAttribute id="Date_Hour" hidden="false" order="33" semanticType="empty" attributeHierarchyActive="false" displayAttribute="false">
+        <descriptions defaultDescription="Date_Hour"/>
+        <keyCalculation datatype="TIMESTAMP" expressionLanguage="COLUMN_ENGINE">
+          <formula>longdate(string(&quot;Date&quot;) + string(' ') + string(&quot;Hour&quot;)+string(':')+string('00'))</formula>
+        </keyCalculation>
+      </calculatedAttribute>
+    </calculatedAttributes>
+    <privateDataFoundation>
+      <tableProxies/>
+      <joins/>
+      <layout>
+        <shapes/>
+      </layout>
+    </privateDataFoundation>
+    <baseMeasures>
+      <measure id="ES_AvgMemory_Size_GB" order="14" aggregationType="sum" engineAggregation="avg" measureType="simple">
+        <descriptions defaultDescription="ES_AvgMemory_Size_GB"/>
+        <measureMapping columnObjectName="Union" columnName="ES_AvgMemory_Size_GB"/>
+      </measure>
+      <measure id="ES_MaxMemory_Size_GB" order="15" aggregationType="max" measureType="simple">
+        <descriptions defaultDescription="ES_MaxMemory_Size_GB"/>
+        <measureMapping columnObjectName="Union" columnName="ES_MaxMemory_Size_GB"/>
+      </measure>
+      <measure id="ES_AvgPct_Limit" order="16" aggregationType="sum" engineAggregation="avg" measureType="simple">
+        <descriptions defaultDescription="ES_AvgPct_Limit"/>
+        <measureMapping columnObjectName="Union" columnName="ES_AvgPct_Limit"/>
+      </measure>
+      <measure id="ES_MaxPct_Limit" order="17" aggregationType="max" measureType="simple">
+        <descriptions defaultDescription="ES_MaxPct_Limit"/>
+        <measureMapping columnObjectName="Union" columnName="ES_MaxPct_Limit"/>
+      </measure>
+      <measure id="ES_AvgDuration_Sec" order="18" aggregationType="sum" engineAggregation="avg" measureType="simple">
+        <descriptions defaultDescription="ES_AvgDuration_Sec"/>
+        <measureMapping columnObjectName="Union" columnName="ES_AvgDuration_Sec"/>
+      </measure>
+      <measure id="ES_AvgCPU_Time_Sec" order="19" aggregationType="sum" engineAggregation="avg" measureType="simple">
+        <descriptions defaultDescription="ES_AvgCPU_Time_Sec"/>
+        <measureMapping columnObjectName="Union" columnName="ES_AvgCPU_Time_Sec"/>
+      </measure>
+      <measure id="LH_AvgCPU" order="20" aggregationType="sum" engineAggregation="avg" measureType="simple">
+        <descriptions defaultDescription="LH_AvgCPU"/>
+        <measureMapping columnObjectName="Union" columnName="LH_AvgCPU"/>
+      </measure>
+      <measure id="LH_MaxCPU" order="21" aggregationType="max" measureType="simple">
+        <descriptions defaultDescription="LH_MaxCPU"/>
+        <measureMapping columnObjectName="Union" columnName="LH_MaxCPU"/>
+      </measure>
+      <measure id="LH_AvgMemory" order="22" aggregationType="sum" engineAggregation="avg" measureType="simple">
+        <descriptions defaultDescription="LH_AvgMemory"/>
+        <measureMapping columnObjectName="Union" columnName="LH_AvgMemory"/>
+      </measure>
+      <measure id="LH_AvgMemoryPct" hidden="false" order="23" aggregationType="sum" engineAggregation="avg" measureType="simple">
+        <descriptions defaultDescription="LH_AvgMemoryPct"/>
+        <measureMapping columnObjectName="Union" columnName="LH_AvgMemoryPct"/>
+      </measure>
+      <measure id="LH_MaxMemoryPct" order="24" aggregationType="max" measureType="simple">
+        <descriptions defaultDescription="LH_MaxMemoryPct"/>
+        <measureMapping columnObjectName="Union" columnName="LH_MaxMemoryPct"/>
+      </measure>
+      <measure id="LH_MaxMemory" order="25" aggregationType="max" measureType="simple">
+        <descriptions defaultDescription="LH_MaxMemory"/>
+        <measureMapping columnObjectName="Union" columnName="LH_MaxMemory"/>
+      </measure>
+      <measure id="LH_MinMemory" order="26" aggregationType="min" measureType="simple">
+        <descriptions defaultDescription="LH_MinMemory"/>
+        <measureMapping columnObjectName="Union" columnName="LH_MinMemory"/>
+      </measure>
+      <measure id="LH_MemoryAllocation" order="27" aggregationType="max" measureType="simple">
+        <descriptions defaultDescription="LH_MemoryAllocation"/>
+        <measureMapping columnObjectName="Union" columnName="LH_MemoryAllocation"/>
+      </measure>
+      <measure id="LH_AvgConnectionCount" order="28" aggregationType="sum" engineAggregation="avg" measureType="simple">
+        <descriptions defaultDescription="LH_AvgConnectionCount"/>
+        <measureMapping columnObjectName="Union" columnName="LH_AvgConnectionCount"/>
+      </measure>
+      <measure id="LH_MaxConnectionCount" order="29" aggregationType="max" measureType="simple">
+        <descriptions defaultDescription="LH_MaxConnectionCount"/>
+        <measureMapping columnObjectName="Union" columnName="LH_MaxConnectionCount"/>
+      </measure>
+      <measure id="LH_AvgActiveThread" order="30" aggregationType="sum" engineAggregation="avg" measureType="simple">
+        <descriptions defaultDescription="LH_AvgActiveThread"/>
+        <measureMapping columnObjectName="Union" columnName="LH_AvgActiveThread"/>
+      </measure>
+      <measure id="LH_MaxActiveThread" order="31" aggregationType="max" measureType="simple">
+        <descriptions defaultDescription="LH_MaxActiveThread"/>
+        <measureMapping columnObjectName="Union" columnName="LH_MaxActiveThread"/>
+      </measure>
+    </baseMeasures>
+    <calculatedMeasures/>
+    <restrictedMeasures/>
+    <localDimensions/>
+  </logicalModel>
+  <layout>
+    <shapes>
+      <shape expanded="true" modelObjectName="Output" modelObjectNameSpace="MeasureGroup">
+        <upperLeftCorner x="99" y="87"/>
+        <rectangleSize height="0" width="0"/>
+      </shape>
+      <shape expanded="true" modelObjectName="ExpensiveStatements" modelObjectNameSpace="CalculationView">
+        <upperLeftCorner x="22" y="281"/>
+        <rectangleSize height="-1" width="-1"/>
+      </shape>
+      <shape expanded="true" modelObjectName="LoadHistory" modelObjectNameSpace="CalculationView">
+        <upperLeftCorner x="180" y="281"/>
+        <rectangleSize height="-1" width="-1"/>
+      </shape>
+      <shape expanded="true" modelObjectName="Union" modelObjectNameSpace="CalculationView">
+        <upperLeftCorner x="99" y="165"/>
+        <rectangleSize height="0" width="0"/>
+      </shape>
+    </shapes>
+  </layout>
+</Calculation:scenario>
