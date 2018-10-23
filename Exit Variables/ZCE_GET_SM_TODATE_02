@@ -1,0 +1,82 @@
+FUNCTION ZCE_GET_SM_TODATE_02.
+*"----------------------------------------------------------------------
+*"*"Local Interface:
+*"  IMPORTING
+*"     REFERENCE(I_STEP) TYPE  I
+*"     REFERENCE(I_VNAM) TYPE  RSZGLOBV-VNAM
+*"     REFERENCE(I_VARTYP) TYPE  RSZGLOBV-VARTYP
+*"     REFERENCE(I_IOBJNM) TYPE  RSZGLOBV-IOBJNM
+*"     REFERENCE(I_S_COB_PRO) TYPE  RSD_S_COB_PRO
+*"     REFERENCE(I_S_RKB1D) TYPE  RSR_S_RKB1D
+*"     REFERENCE(I_PERIV) TYPE  RRO01_S_RKB1F-PERIV
+*"     REFERENCE(I_T_VAR_RANGE) TYPE  RRS0_T_VAR_RANGE
+*"  EXPORTING
+*"     REFERENCE(C_T_RANGE) TYPE  RSR_T_RANGESID
+*"     REFERENCE(C_NO_SCREEN) TYPE  RS_BOOL
+*"     REFERENCE(C_CHECK_AGAIN) TYPE  RS_BOOL
+*"     REFERENCE(C_S_CUSTOMER) TYPE  RRO04_S_CUSTOMER
+*"----------------------------------------------------------------------
+
+
+*--------------------------------------------------------------------*
+* This Exit variable is intended to get value from reference
+* variable
+*--------------------------------------------------------------------*
+
+*The customer exit for variables is called three times maximally.
+*These three steps are called under I_STEP:
+*
+*1. The first step (I_STEP = 1) is before the processing of the variable pop-up and gets
+*called for every variable of the processing type “customer exit”. You can use this
+*step to fill your variable with default values.
+*
+*2. The second step (I_STEP = 2) is called after the processing of the variable pop-up.
+*This step is called only for those variables that are not marked as “ready for input”
+*and are set to “mandatory variable entry”.
+*
+*3. The third step (I_STEP = 3) is called after all variable processing and gets called
+*only once and not per variable. Here you can validate the user entries
+
+
+TYPES: Variable(30) TYPE C.
+
+DATA: SourceVariable TYPE RRRANGEEXIT,
+      TargetVariable TYPE RSR_S_RANGESID,
+      InVariable TYPE TABLE OF Variable,
+      LoopVar TYPE Variable.
+
+BREAK-POINT.
+
+*after the processing of the variable pop-up
+IF I_STEP = 2.
+* If we experience problems with the order the variables are sorted, this can stem from ABAP changing the order to optimize memory.
+* We do not expect it to happen, so we keep this implementation until proven otherwise
+  Append 'SM_TODATE' TO InVariable.
+  Append 'CE_CALDAY_01' TO InVariable.
+  Append 'CE_CALDAY_02' TO InVariable.
+  Append '0DAT' TO InVariable.
+
+*Loop the source variable names to find valid value
+  LOOP AT InVariable INTO LoopVar.  " ASSIGNING FIELDS LoopVar.
+    read table I_T_VAR_RANGE INTO SourceVariable with key vnam = LoopVar.                   "'SM_TODATE'.
+      "If we find the variable, then process it into this variable value. Else continue next.
+      IF sy-subrc = 0.
+        "TargetVariable = SourceVariable.
+        "MOVE-CORRESPONDING SourceVariable TO TargetVariable.
+
+        " Update varible value (from range only - single value)
+        TargetVariable-low = SourceVariable-low.
+        "TargetVariable-high = WA-/BIC/ZCALTO.
+        TargetVariable-sign = 'I'.
+        TargetVariable-opt = 'EQ'.
+
+        "Collect the result into the result range --> c_t_range
+        APPEND TargetVariable to c_t_range.
+
+        "Continue.
+        EXIT.
+      ENDIF.
+  ENDLOOP.
+ENDIF.
+
+ENDFUNCTION.
