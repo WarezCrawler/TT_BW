@@ -1,0 +1,813 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Calculation:scenario xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:Calculation="http://www.sap.com/ndb/BiModelCalculation.ecore" schemaVersion="2.3" id="CV_STOCK_AVAILABILITY_01" applyPrivilegeType="NONE" cacheInvalidationPeriod="NONE" checkAnalyticPrivileges="false" defaultClient="$$client$$" defaultLanguage="$$language$$" hierarchiesSQLEnabled="false" translationRelevant="true" visibility="reportingEnabled" analyticViewCompatibilityMode="false" calculationScenarioType="TREE_BASED" dataCategory="CUBE" enforceSqlExecution="true" executionSemantic="UNDEFINED" outputViewType="Aggregation">
+  <origin/>
+  <descriptions defaultDescription="KPI Stock Availability"/>
+  <metadata changedAt="2018-04-25 09:20:31.33"/>
+  <localVariables>
+    <variable id="IP_FROMDATE" parameter="true">
+      <descriptions defaultDescription="IP_FROMDATE"/>
+      <variableProperties datatype="DATE" defaultValue="20170206" mandatory="true">
+        <valueDomain type="Date"/>
+        <selection multiLine="false" type="SingleValue"/>
+      </variableProperties>
+    </variable>
+    <variable id="IP_TODATE" parameter="true">
+      <descriptions defaultDescription="IP_TODATE"/>
+      <variableProperties datatype="DATE" defaultValue="20170206" mandatory="true">
+        <valueDomain type="Date"/>
+        <selection multiLine="false" type="SingleValue"/>
+      </variableProperties>
+    </variable>
+  </localVariables>
+  <variableMappings/>
+  <informationModelLayout relativeWidthScenario="49"/>
+  <dataSources>
+    <DataSource id="M_TIME_DIMENSION" type="DATA_BASE_TABLE">
+      <viewAttributes allViewAttributes="true"/>
+      <columnObject schemaName="_SYS_BI" columnObjectName="M_TIME_DIMENSION"/>
+    </DataSource>
+    <DataSource id="/B1H/AD_MMIM015" type="DATA_BASE_TABLE">
+      <viewAttributes allViewAttributes="true"/>
+      <columnObject schemaName="SAPBWD" columnObjectName="/B1H/AD_MMIM015"/>
+    </DataSource>
+    <DataSource id="_BIC_AZMM_D025" type="DATA_BASE_TABLE">
+      <viewAttributes allViewAttributes="true"/>
+      <columnObject schemaName="SAPBWD" columnObjectName="/BIC/AZMM_D025" alias="_BIC_AZMM_D025"/>
+    </DataSource>
+    <DataSource id="_BIC_AZAS_D025" type="DATA_BASE_TABLE">
+      <viewAttributes allViewAttributes="true"/>
+      <columnObject schemaName="SAPBWD" columnObjectName="/BIC/AZAS_D025" alias="_BIC_AZAS_D025"/>
+    </DataSource>
+    <DataSource id="/BI0/PMATERIAL" type="DATA_BASE_TABLE">
+      <viewAttributes allViewAttributes="true"/>
+      <columnObject schemaName="SAPBWD" columnObjectName="/BI0/PMATERIAL"/>
+    </DataSource>
+    <DataSource id="/B1H/AD_MMIM012" type="DATA_BASE_TABLE">
+      <viewAttributes allViewAttributes="true"/>
+      <columnObject schemaName="SAPBWD" columnObjectName="/B1H/AD_MMIM012"/>
+    </DataSource>
+    <DataSource id="_BIC_AZMM_D022" type="DATA_BASE_TABLE">
+      <viewAttributes allViewAttributes="true"/>
+      <columnObject schemaName="SAPBWD" columnObjectName="/BIC/AZMM_D022" alias="_BIC_AZMM_D022"/>
+    </DataSource>
+    <DataSource id="_BIC_AZAS_D022" type="DATA_BASE_TABLE">
+      <viewAttributes allViewAttributes="true"/>
+      <columnObject schemaName="SAPBWD" columnObjectName="/BIC/AZAS_D022" alias="_BIC_AZAS_D022"/>
+    </DataSource>
+  </dataSources>
+  <calculationViews>
+    <calculationView xsi:type="Calculation:ProjectionView" id="Dates" filterExpressionLanguage="SQL">
+      <descriptions>
+        <comment text="Get all dates"/>
+      </descriptions>
+      <viewAttributes>
+        <viewAttribute id="DATE_SAP"/>
+      </viewAttributes>
+      <calculatedViewAttributes/>
+      <input node="#M_TIME_DIMENSION">
+        <mapping xsi:type="Calculation:AttributeMapping" target="DATE_SAP" source="DATE_SAP"/>
+      </input>
+      <filter>&quot;DATE_SAP&quot; >= '$$IP_FROMDATE$$' and &quot;DATE_SAP&quot; &lt;= '$$IP_TODATE$$'</filter>
+    </calculationView>
+    <calculationView xsi:type="Calculation:UnionView" id="Closings">
+      <descriptions defaultDescription=" Closing Data"/>
+      <viewAttributes>
+        <viewAttribute id="MATERIAL" transparentFilter="false"/>
+        <viewAttribute id="PLANT" transparentFilter="false"/>
+        <viewAttribute datatype="NVARCHAR" id="STOCKTYPE" length="1" scale="0" transparentFilter="false"/>
+        <viewAttribute id="BASE_UOM" transparentFilter="false"/>
+        <viewAttribute datatype="NVARCHAR" id="CALDAY" length="8" transparentFilter="false"/>
+        <viewAttribute datatype="DECIMAL" id="RECTOTSTCK" length="17" scale="3" transparentFilter="false"/>
+        <viewAttribute datatype="DECIMAL" id="RTQPRSMO" length="17" scale="3" transparentFilter="false"/>
+      </viewAttributes>
+      <calculatedViewAttributes/>
+      <input emptyUnionBehavior="NO_ROW" node="#/B1H/AD_MMIM015">
+        <mapping xsi:type="Calculation:AttributeMapping" target="MATERIAL" source="MATERIAL"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="PLANT" source="PLANT"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="STOCKTYPE" source="STOCKTYPE"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="BASE_UOM" source="BASE_UOM"/>
+        <mapping xsi:type="Calculation:ConstantAttributeMapping" target="CALDAY" null="false" value="99991231"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="RECTOTSTCK" source="RECTOTSTCK"/>
+        <mapping xsi:type="Calculation:ConstantAttributeMapping" target="RTQPRSMO" null="false" value="0"/>
+      </input>
+      <input emptyUnionBehavior="NO_ROW" node="#_BIC_AZMM_D025">
+        <mapping xsi:type="Calculation:AttributeMapping" target="MATERIAL" source="MATERIAL"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="PLANT" source="PLANT"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="STOCKTYPE" source="STOCKTYPE"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="BASE_UOM" source="BASE_UOM"/>
+        <mapping xsi:type="Calculation:ConstantAttributeMapping" target="CALDAY" null="false" value="99991231"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="RECTOTSTCK" source="RECTOTSTCK"/>
+        <mapping xsi:type="Calculation:ConstantAttributeMapping" target="RTQPRSMO" null="false" value="0"/>
+      </input>
+      <input emptyUnionBehavior="NO_ROW" node="#_BIC_AZAS_D025">
+        <mapping xsi:type="Calculation:AttributeMapping" target="MATERIAL" source="MATERIAL"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="PLANT" source="PLANT"/>
+        <mapping xsi:type="Calculation:ConstantAttributeMapping" target="STOCKTYPE" null="false" value="A"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="BASE_UOM" source="UNIT"/>
+        <mapping xsi:type="Calculation:ConstantAttributeMapping" target="CALDAY" null="false" value="99991231"/>
+        <mapping xsi:type="Calculation:ConstantAttributeMapping" target="RECTOTSTCK" null="false" value="0"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="RTQPRSMO" source="RTQPRSMO"/>
+      </input>
+    </calculationView>
+    <calculationView xsi:type="Calculation:ProjectionView" id="Filter" filterExpressionLanguage="SQL">
+      <descriptions/>
+      <viewAttributes>
+        <viewAttribute id="MATERIAL" transparentFilter="false"/>
+        <viewAttribute id="PLANT" transparentFilter="false"/>
+        <viewAttribute id="STOCKTYPE" transparentFilter="false"/>
+        <viewAttribute id="BASE_UOM" transparentFilter="false"/>
+      </viewAttributes>
+      <calculatedViewAttributes/>
+      <input node="#Closings">
+        <mapping xsi:type="Calculation:AttributeMapping" target="MATERIAL" source="MATERIAL"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="PLANT" source="PLANT"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="STOCKTYPE" source="STOCKTYPE"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="BASE_UOM" source="BASE_UOM"/>
+      </input>
+      <filter>NOT &quot;PLANT&quot; IN (&#xD;
+'9802',&#xD;
+'9803',&#xD;
+'2198',&#xD;
+'2298',&#xD;
+'2398',&#xD;
+'2498',&#xD;
+'2698',&#xD;
+'3198',&#xD;
+'3298',&#xD;
+'3398',&#xD;
+'3498',&#xD;
+'3598',&#xD;
+'9801',&#xD;
+'9804',&#xD;
+'9805',&#xD;
+'9807'&#xD;
+ )</filter>
+    </calculationView>
+    <calculationView xsi:type="Calculation:AggregationView" id="CharacteristicCombinations">
+      <descriptions/>
+      <viewAttributes>
+        <viewAttribute id="MATERIAL" transparentFilter="false"/>
+        <viewAttribute id="PLANT" transparentFilter="false"/>
+        <viewAttribute id="STOCKTYPE" transparentFilter="false"/>
+        <viewAttribute id="BASE_UOM" transparentFilter="false"/>
+      </viewAttributes>
+      <calculatedViewAttributes/>
+      <input node="#Filter">
+        <mapping xsi:type="Calculation:AttributeMapping" target="MATERIAL" source="MATERIAL"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="PLANT" source="PLANT"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="STOCKTYPE" source="STOCKTYPE"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="BASE_UOM" source="BASE_UOM"/>
+      </input>
+      <filter>&quot;MATERIAL&quot; != ''</filter>
+    </calculationView>
+    <calculationView xsi:type="Calculation:ProjectionView" id="Material_Master_Attr" filterExpressionLanguage="SQL">
+      <descriptions/>
+      <viewAttributes>
+        <viewAttribute id="MATERIAL"/>
+        <viewAttribute id="OBJVERS"/>
+        <viewAttribute id="MATGEN"/>
+        <viewAttribute id="BusinessModel"/>
+        <viewAttribute id="Family"/>
+        <viewAttribute id="Category"/>
+        <viewAttribute id="SubCategory"/>
+        <viewAttribute id="BaseCategory"/>
+        <viewAttribute id="PurchasingGroup"/>
+        <viewAttribute id="XSiteStatus"/>
+        <viewAttribute id="CM_Team"/>
+        <viewAttribute id="StrategicProductGroup"/>
+        <viewAttribute id="RegularVendor"/>
+      </viewAttributes>
+      <calculatedViewAttributes/>
+      <input node="#/BI0/PMATERIAL">
+        <mapping xsi:type="Calculation:AttributeMapping" target="MATERIAL" source="MATERIAL"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="OBJVERS" source="OBJVERS"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="MATGEN" source="/BIC/ZMATGEN"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="BusinessModel" source="/BIC/ZZBUSMO"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="Family" source="CM_CDT2"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="Category" source="CM_CDT3"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="SubCategory" source="CM_CDT4"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="XSiteStatus" source="/BIC/ZXSTGENST"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="CM_Team" source="/BIC/ZCM_TEAM"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="StrategicProductGroup" source="/BIC/ZSTRATMAT"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="RegularVendor" source="VENDOR"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="BaseCategory" source="CM_CDT5"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="PurchasingGroup" source="PUR_GROUP"/>
+      </input>
+      <filter>&quot;OBJVERS&quot;='A'</filter>
+    </calculationView>
+    <calculationView xsi:type="Calculation:JoinView" id="CharComb_MATGEN" cardinality="CN_1" joinOrder="OUTSIDE_IN" joinType="leftOuter" optimizeJoinColumns="true">
+      <descriptions>
+        <comment text="Important!&#xD;&#xA;In order for the calculations on Generic Material to be performed correctly, we need to have all related joins done here, and not on semantic level."/>
+      </descriptions>
+      <viewAttributes>
+        <viewAttribute id="MATGEN"/>
+        <viewAttribute id="MATERIAL" transparentFilter="false"/>
+        <viewAttribute id="PLANT" transparentFilter="false"/>
+        <viewAttribute id="STOCKTYPE" transparentFilter="false"/>
+        <viewAttribute id="BASE_UOM" transparentFilter="false"/>
+        <viewAttribute id="StrategicProductGroup"/>
+        <viewAttribute id="CM_Team"/>
+        <viewAttribute id="XSiteStatus"/>
+        <viewAttribute id="Family"/>
+        <viewAttribute id="Category"/>
+        <viewAttribute id="SubCategory"/>
+        <viewAttribute id="BaseCategory"/>
+        <viewAttribute id="BusinessModel"/>
+        <viewAttribute id="PurchasingGroup"/>
+        <viewAttribute id="RegularVendor"/>
+      </viewAttributes>
+      <calculatedViewAttributes/>
+      <input node="#CharacteristicCombinations">
+        <mapping xsi:type="Calculation:AttributeMapping" target="MATERIAL" source="MATERIAL"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="PLANT" source="PLANT"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="STOCKTYPE" source="STOCKTYPE"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="BASE_UOM" source="BASE_UOM"/>
+      </input>
+      <input node="#Material_Master_Attr">
+        <mapping xsi:type="Calculation:AttributeMapping" target="MATGEN" source="MATGEN"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="StrategicProductGroup" source="StrategicProductGroup"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="CM_Team" source="CM_Team"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="XSiteStatus" source="XSiteStatus"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="SubCategory" source="SubCategory"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="Category" source="Category"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="Family" source="Family"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="BusinessModel" source="BusinessModel"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="BaseCategory" source="BaseCategory"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="PurchasingGroup" source="PurchasingGroup"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="RegularVendor" source="RegularVendor"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="MATERIAL" source="MATERIAL"/>
+      </input>
+      <joinAttribute name="MATERIAL"/>
+    </calculationView>
+    <calculationView xsi:type="Calculation:JoinView" id="Date_Char_Combinations" cardinality="CN_N" joinOrder="OUTSIDE_IN">
+      <descriptions>
+        <comment text="Combine all relevant dates with all relevant characteristic combinations"/>
+      </descriptions>
+      <viewAttributes>
+        <viewAttribute id="DATE_SAP"/>
+        <viewAttribute id="MATGEN"/>
+        <viewAttribute id="MATERIAL" transparentFilter="false"/>
+        <viewAttribute id="PLANT" transparentFilter="false"/>
+        <viewAttribute id="STOCKTYPE" transparentFilter="false"/>
+        <viewAttribute id="BASE_UOM" transparentFilter="false"/>
+        <viewAttribute id="StrategicProductGroup"/>
+        <viewAttribute id="CM_Team"/>
+        <viewAttribute id="XSiteStatus"/>
+        <viewAttribute id="Family"/>
+        <viewAttribute id="Category"/>
+        <viewAttribute id="SubCategory"/>
+        <viewAttribute id="BaseCategory"/>
+        <viewAttribute id="BusinessModel"/>
+        <viewAttribute id="PurchasingGroup"/>
+        <viewAttribute id="RegularVendor"/>
+      </viewAttributes>
+      <calculatedViewAttributes/>
+      <input node="#CharComb_MATGEN">
+        <mapping xsi:type="Calculation:AttributeMapping" target="MATGEN" source="MATGEN"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="MATERIAL" source="MATERIAL"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="PLANT" source="PLANT"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="STOCKTYPE" source="STOCKTYPE"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="BASE_UOM" source="BASE_UOM"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="StrategicProductGroup" source="StrategicProductGroup"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="CM_Team" source="CM_Team"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="XSiteStatus" source="XSiteStatus"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="SubCategory" source="SubCategory"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="Category" source="Category"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="Family" source="Family"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="BusinessModel" source="BusinessModel"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="BaseCategory" source="BaseCategory"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="PurchasingGroup" source="PurchasingGroup"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="RegularVendor" source="RegularVendor"/>
+      </input>
+      <input node="#Dates">
+        <mapping xsi:type="Calculation:AttributeMapping" target="DATE_SAP" source="DATE_SAP"/>
+      </input>
+    </calculationView>
+    <calculationView xsi:type="Calculation:UnionView" id="Movements">
+      <descriptions/>
+      <viewAttributes>
+        <viewAttribute id="MATERIAL" transparentFilter="false"/>
+        <viewAttribute id="PLANT" transparentFilter="false"/>
+        <viewAttribute datatype="NVARCHAR" id="STOCKTYPE" length="1" scale="0" transparentFilter="false"/>
+        <viewAttribute id="CALDAY" transparentFilter="false"/>
+        <viewAttribute id="BASE_UOM" transparentFilter="false"/>
+        <viewAttribute datatype="DECIMAL" id="RECTOTSTCK" length="17" scale="3" transparentFilter="false"/>
+        <viewAttribute datatype="DECIMAL" id="ISSTOTSTCK" length="17" scale="3" transparentFilter="false"/>
+        <viewAttribute datatype="DECIMAL" id="RTQPRSMO" length="17" scale="3" transparentFilter="false"/>
+      </viewAttributes>
+      <calculatedViewAttributes/>
+      <input emptyUnionBehavior="NO_ROW" node="#/B1H/AD_MMIM012">
+        <mapping xsi:type="Calculation:AttributeMapping" target="MATERIAL" source="MATERIAL"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="PLANT" source="PLANT"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="STOCKTYPE" source="STOCKTYPE"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="CALDAY" source="CALDAY"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="BASE_UOM" source="BASE_UOM"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="RECTOTSTCK" source="RECTOTSTCK"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="ISSTOTSTCK" source="ISSTOTSTCK"/>
+        <mapping xsi:type="Calculation:ConstantAttributeMapping" target="RTQPRSMO" null="false" value="0"/>
+      </input>
+      <input emptyUnionBehavior="NO_ROW" node="#_BIC_AZMM_D022">
+        <mapping xsi:type="Calculation:AttributeMapping" target="MATERIAL" source="MATERIAL"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="PLANT" source="PLANT"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="STOCKTYPE" source="STOCKTYPE"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="CALDAY" source="CALDAY"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="BASE_UOM" source="BASE_UOM"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="RECTOTSTCK" source="RECTOTSTCK"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="ISSTOTSTCK" source="ISSTOTSTCK"/>
+        <mapping xsi:type="Calculation:ConstantAttributeMapping" target="RTQPRSMO" null="false" value="0"/>
+      </input>
+      <input emptyUnionBehavior="NO_ROW" node="#_BIC_AZAS_D022">
+        <mapping xsi:type="Calculation:AttributeMapping" target="MATERIAL" source="MATERIAL"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="PLANT" source="PLANT"/>
+        <mapping xsi:type="Calculation:ConstantAttributeMapping" target="STOCKTYPE" null="false" value="A"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="CALDAY" source="CALDAY"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="BASE_UOM" source="UNIT"/>
+        <mapping xsi:type="Calculation:ConstantAttributeMapping" target="RECTOTSTCK" null="false" value="0"/>
+        <mapping xsi:type="Calculation:ConstantAttributeMapping" target="ISSTOTSTCK" null="false" value="0"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="RTQPRSMO" source="RTQPRSMO"/>
+      </input>
+    </calculationView>
+    <calculationView xsi:type="Calculation:ProjectionView" id="DailyMovements" filterExpressionLanguage="SQL">
+      <descriptions/>
+      <viewAttributes>
+        <viewAttribute id="MATERIAL" transparentFilter="false"/>
+        <viewAttribute id="PLANT" transparentFilter="false"/>
+        <viewAttribute id="STOCKTYPE" transparentFilter="false"/>
+        <viewAttribute id="MovementDate" transparentFilter="false"/>
+        <viewAttribute id="BASE_UOM" transparentFilter="false"/>
+        <viewAttribute id="RECTOTSTCK" transparentFilter="false"/>
+        <viewAttribute id="ISSTOTSTCK" transparentFilter="false"/>
+        <viewAttribute id="OptimalStock" transparentFilter="false"/>
+      </viewAttributes>
+      <calculatedViewAttributes>
+        <calculatedViewAttribute datatype="DECIMAL" id="InverseNetStockChange" length="17" scale="2" expressionLanguage="COLUMN_ENGINE">
+          <formula>-(&quot;RECTOTSTCK&quot;-&quot;ISSTOTSTCK&quot;)</formula>
+        </calculatedViewAttribute>
+        <calculatedViewAttribute datatype="DECIMAL" id="InverseOptimalStock" length="17" scale="2" expressionLanguage="COLUMN_ENGINE">
+          <formula>-&quot;OptimalStock&quot;</formula>
+        </calculatedViewAttribute>
+      </calculatedViewAttributes>
+      <input node="#Movements">
+        <mapping xsi:type="Calculation:AttributeMapping" target="MATERIAL" source="MATERIAL"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="PLANT" source="PLANT"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="STOCKTYPE" source="STOCKTYPE"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="MovementDate" source="CALDAY"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="BASE_UOM" source="BASE_UOM"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="RECTOTSTCK" source="RECTOTSTCK"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="ISSTOTSTCK" source="ISSTOTSTCK"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="OptimalStock" source="RTQPRSMO"/>
+      </input>
+      <filter>&quot;MovementDate&quot;>='$$IP_FROMDATE$$' AND&#xD;
+NOT &quot;PLANT&quot; IN (&#xD;
+'9802',&#xD;
+'9803',&#xD;
+'2198',&#xD;
+'2298',&#xD;
+'2398',&#xD;
+'2498',&#xD;
+'2698',&#xD;
+'3198',&#xD;
+'3298',&#xD;
+'3398',&#xD;
+'3498',&#xD;
+'3598',&#xD;
+'9801',&#xD;
+'9804',&#xD;
+'9805',&#xD;
+'9807'&#xD;
+ )</filter>
+    </calculationView>
+    <calculationView xsi:type="Calculation:ProjectionView" id="Closing_Stocks" filterExpressionLanguage="SQL">
+      <descriptions/>
+      <viewAttributes>
+        <viewAttribute id="MATERIAL" transparentFilter="false"/>
+        <viewAttribute id="PLANT" transparentFilter="false"/>
+        <viewAttribute id="STOCKTYPE" transparentFilter="false"/>
+        <viewAttribute id="BASE_UOM" transparentFilter="false"/>
+        <viewAttribute id="ClosingDay" transparentFilter="false"/>
+        <viewAttribute id="ClosingStock" transparentFilter="false"/>
+        <viewAttribute id="ClosingOptimalStock" transparentFilter="false"/>
+      </viewAttributes>
+      <calculatedViewAttributes/>
+      <input node="#Closings">
+        <mapping xsi:type="Calculation:AttributeMapping" target="MATERIAL" source="MATERIAL"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="PLANT" source="PLANT"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="STOCKTYPE" source="STOCKTYPE"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="BASE_UOM" source="BASE_UOM"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="ClosingDay" source="CALDAY"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="ClosingStock" source="RECTOTSTCK"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="ClosingOptimalStock" source="RTQPRSMO"/>
+      </input>
+      <filter>&quot;MATERIAL&quot; != '' AND&#xD;
+NOT &quot;PLANT&quot; IN (&#xD;
+'9802',&#xD;
+'9803',&#xD;
+'2198',&#xD;
+'2298',&#xD;
+'2398',&#xD;
+'2498',&#xD;
+'2698',&#xD;
+'3198',&#xD;
+'3298',&#xD;
+'3398',&#xD;
+'3498',&#xD;
+'3598',&#xD;
+'9801',&#xD;
+'9804',&#xD;
+'9805',&#xD;
+'9807'&#xD;
+ )</filter>
+    </calculationView>
+    <calculationView xsi:type="Calculation:UnionView" id="Closing_and_movements">
+      <descriptions/>
+      <viewAttributes>
+        <viewAttribute id="MATERIAL"/>
+        <viewAttribute id="PLANT"/>
+        <viewAttribute datatype="NVARCHAR" id="MOVEMENTDATE" length="8" scale="0"/>
+        <viewAttribute datatype="DECIMAL" id="AUGSTOCK" length="17" scale="2"/>
+        <viewAttribute datatype="DECIMAL" id="AUGOPTSTOCK" length="17" scale="2"/>
+        <viewAttribute id="STOCKTYPE" transparentFilter="false"/>
+        <viewAttribute id="BASE_UOM" transparentFilter="false"/>
+      </viewAttributes>
+      <calculatedViewAttributes/>
+      <input emptyUnionBehavior="NO_ROW" node="#DailyMovements">
+        <mapping xsi:type="Calculation:AttributeMapping" target="MATERIAL" source="MATERIAL"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="PLANT" source="PLANT"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="MOVEMENTDATE" source="MovementDate"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="AUGSTOCK" source="InverseNetStockChange"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="AUGOPTSTOCK" source="InverseOptimalStock"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="STOCKTYPE" source="STOCKTYPE"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="BASE_UOM" source="BASE_UOM"/>
+      </input>
+      <input emptyUnionBehavior="NO_ROW" node="#Closing_Stocks">
+        <mapping xsi:type="Calculation:AttributeMapping" target="MATERIAL" source="MATERIAL"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="PLANT" source="PLANT"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="MOVEMENTDATE" source="ClosingDay"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="AUGSTOCK" source="ClosingStock"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="AUGOPTSTOCK" source="ClosingOptimalStock"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="STOCKTYPE" source="STOCKTYPE"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="BASE_UOM" source="BASE_UOM"/>
+      </input>
+    </calculationView>
+    <calculationView xsi:type="Calculation:AggregationView" id="MovementsPerDateInclZeroMoveDates">
+      <descriptions/>
+      <viewAttributes>
+        <viewAttribute id="CALDAY" transparentFilter="false"/>
+        <viewAttribute id="MATGEN"/>
+        <viewAttribute id="MATERIAL" transparentFilter="false"/>
+        <viewAttribute id="PLANT" transparentFilter="false"/>
+        <viewAttribute id="STOCKTYPE" transparentFilter="false"/>
+        <viewAttribute id="BASE_UOM" transparentFilter="false"/>
+        <viewAttribute id="StrategicProductGroup"/>
+        <viewAttribute id="CM_Team"/>
+        <viewAttribute id="XSiteStatus"/>
+        <viewAttribute id="Family"/>
+        <viewAttribute id="Category"/>
+        <viewAttribute id="SubCategory"/>
+        <viewAttribute id="BaseCategory"/>
+        <viewAttribute id="BusinessModel"/>
+        <viewAttribute id="PurchasingGroup"/>
+        <viewAttribute id="RegularVendor"/>
+      </viewAttributes>
+      <calculatedViewAttributes/>
+      <input node="#Date_Char_Combinations">
+        <mapping xsi:type="Calculation:AttributeMapping" target="CALDAY" source="DATE_SAP"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="MATGEN" source="MATGEN"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="MATERIAL" source="MATERIAL"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="PLANT" source="PLANT"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="STOCKTYPE" source="STOCKTYPE"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="BASE_UOM" source="BASE_UOM"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="StrategicProductGroup" source="StrategicProductGroup"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="CM_Team" source="CM_Team"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="XSiteStatus" source="XSiteStatus"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="SubCategory" source="SubCategory"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="Category" source="Category"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="Family" source="Family"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="BusinessModel" source="BusinessModel"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="BaseCategory" source="BaseCategory"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="PurchasingGroup" source="PurchasingGroup"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="RegularVendor" source="RegularVendor"/>
+      </input>
+    </calculationView>
+    <calculationView xsi:type="Calculation:AggregationView" id="Aggr_Closing_and_movements">
+      <descriptions defaultDescription=" Aggr Closings and movements"/>
+      <viewAttributes>
+        <viewAttribute id="MATERIAL"/>
+        <viewAttribute id="PLANT"/>
+        <viewAttribute id="MovementDate"/>
+        <viewAttribute id="StockType" transparentFilter="false"/>
+        <viewAttribute id="BaseUnitofMeasure" transparentFilter="false"/>
+        <viewAttribute aggregationType="sum" id="AugStock"/>
+        <viewAttribute aggregationType="sum" id="AUGOPTSTOCK"/>
+      </viewAttributes>
+      <calculatedViewAttributes/>
+      <input node="#Closing_and_movements">
+        <mapping xsi:type="Calculation:AttributeMapping" target="MATERIAL" source="MATERIAL"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="PLANT" source="PLANT"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="MovementDate" source="MOVEMENTDATE"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="StockType" source="STOCKTYPE"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="BaseUnitofMeasure" source="BASE_UOM"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="AugStock" source="AUGSTOCK"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="AUGOPTSTOCK" source="AUGOPTSTOCK"/>
+      </input>
+    </calculationView>
+    <calculationView xsi:type="Calculation:JoinView" id="Intermediatiate_Stock_Calculation" cardinality="CN_1" joinOrder="OUTSIDE_IN" joinType="leftOuter">
+      <descriptions/>
+      <viewAttributes>
+        <viewAttribute id="CALDAY" transparentFilter="false"/>
+        <viewAttribute id="PLANT" transparentFilter="false"/>
+        <viewAttribute id="MATGEN"/>
+        <viewAttribute id="MATERIAL" transparentFilter="false"/>
+        <viewAttribute id="STOCKTYPE" transparentFilter="false"/>
+        <viewAttribute id="BASE_UOM" transparentFilter="false"/>
+        <viewAttribute id="MovementDate"/>
+        <viewAttribute id="AugStock"/>
+        <viewAttribute id="AugOptStock"/>
+        <viewAttribute id="StrategicProductGroup"/>
+        <viewAttribute id="CM_Team"/>
+        <viewAttribute id="XSiteStatus"/>
+        <viewAttribute id="Family"/>
+        <viewAttribute id="Category"/>
+        <viewAttribute id="SubCategory"/>
+        <viewAttribute id="BaseCategory"/>
+        <viewAttribute id="BusinessModel"/>
+        <viewAttribute id="PurchasingGroup"/>
+        <viewAttribute id="RegularVendor"/>
+      </viewAttributes>
+      <calculatedViewAttributes/>
+      <input node="#MovementsPerDateInclZeroMoveDates">
+        <mapping xsi:type="Calculation:AttributeMapping" target="CALDAY" source="CALDAY"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="PLANT" source="PLANT"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="MATGEN" source="MATGEN"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="MATERIAL" source="MATERIAL"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="STOCKTYPE" source="STOCKTYPE"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="BASE_UOM" source="BASE_UOM"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="StrategicProductGroup" source="StrategicProductGroup"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="CM_Team" source="CM_Team"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="XSiteStatus" source="XSiteStatus"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="SubCategory" source="SubCategory"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="Category" source="Category"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="Family" source="Family"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="BusinessModel" source="BusinessModel"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="BaseCategory" source="BaseCategory"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="PurchasingGroup" source="PurchasingGroup"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="RegularVendor" source="RegularVendor"/>
+      </input>
+      <input node="#Aggr_Closing_and_movements">
+        <mapping xsi:type="Calculation:AttributeMapping" target="MovementDate" source="MovementDate"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="AugStock" source="AugStock"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="AugOptStock" source="AUGOPTSTOCK"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="MATERIAL" source="MATERIAL"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="PLANT" source="PLANT"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="STOCKTYPE" source="StockType"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="BASE_UOM" source="BaseUnitofMeasure"/>
+      </input>
+      <joinAttribute name="MATERIAL"/>
+      <joinAttribute name="PLANT"/>
+      <joinAttribute name="STOCKTYPE"/>
+      <joinAttribute name="BASE_UOM"/>
+    </calculationView>
+    <calculationView xsi:type="Calculation:ProjectionView" id="Stock_Totals" filterExpressionLanguage="COLUMN_ENGINE">
+      <descriptions>
+        <comment text="1) Movement_Date only exists for the calculation. Do not propagate to semantics.&#xD;&#xA;"/>
+      </descriptions>
+      <viewAttributes>
+        <viewAttribute id="CALDAY" transparentFilter="false"/>
+        <viewAttribute id="MATGEN"/>
+        <viewAttribute id="MATERIAL" transparentFilter="false"/>
+        <viewAttribute id="PLANT" transparentFilter="false"/>
+        <viewAttribute id="STOCKTYPE" transparentFilter="false"/>
+        <viewAttribute id="BASE_UOM" transparentFilter="false"/>
+        <viewAttribute id="MovementDate"/>
+        <viewAttribute id="AugStock"/>
+        <viewAttribute id="AugOptStock"/>
+        <viewAttribute id="StrategicProductGroup"/>
+        <viewAttribute id="CM_Team"/>
+        <viewAttribute id="XSiteStatus"/>
+        <viewAttribute id="Family"/>
+        <viewAttribute id="Category"/>
+        <viewAttribute id="SubCategory"/>
+        <viewAttribute id="BaseCategory"/>
+        <viewAttribute id="BusinessModel"/>
+        <viewAttribute id="PurchasingGroup"/>
+        <viewAttribute id="RegularVendor"/>
+      </viewAttributes>
+      <calculatedViewAttributes/>
+      <input node="#Intermediatiate_Stock_Calculation">
+        <mapping xsi:type="Calculation:AttributeMapping" target="CALDAY" source="CALDAY"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="MATGEN" source="MATGEN"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="MATERIAL" source="MATERIAL"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="PLANT" source="PLANT"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="STOCKTYPE" source="STOCKTYPE"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="BASE_UOM" source="BASE_UOM"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="MovementDate" source="MovementDate"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="AugStock" source="AugStock"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="AugOptStock" source="AugOptStock"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="StrategicProductGroup" source="StrategicProductGroup"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="CM_Team" source="CM_Team"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="XSiteStatus" source="XSiteStatus"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="SubCategory" source="SubCategory"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="Category" source="Category"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="Family" source="Family"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="BusinessModel" source="BusinessModel"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="BaseCategory" source="BaseCategory"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="PurchasingGroup" source="PurchasingGroup"/>
+        <mapping xsi:type="Calculation:AttributeMapping" target="RegularVendor" source="RegularVendor"/>
+      </input>
+      <filter>&quot;MovementDate&quot;>&quot;CALDAY&quot;</filter>
+    </calculationView>
+  </calculationViews>
+  <logicalModel id="Stock_Totals">
+    <descriptions/>
+    <attributes>
+      <attribute id="CALDAY" order="1" semanticType="date" attributeHierarchyActive="false" displayAttribute="false" keepFlag="true" transparentFilter="false">
+        <descriptions defaultDescription="CALDAY"/>
+        <keyMapping columnObjectName="Stock_Totals" columnName="CALDAY"/>
+      </attribute>
+      <attribute id="MATGEN" order="2" attributeHierarchyActive="false" displayAttribute="false" keepFlag="true">
+        <descriptions defaultDescription="MATGEN"/>
+        <keyMapping columnObjectName="Stock_Totals" columnName="MATGEN"/>
+      </attribute>
+      <attribute id="MATERIAL" order="3" attributeHierarchyActive="false" displayAttribute="false" keepFlag="false" transparentFilter="false">
+        <descriptions defaultDescription="MATERIAL"/>
+        <keyMapping columnObjectName="Stock_Totals" columnName="MATERIAL"/>
+      </attribute>
+      <attribute id="StrategicProductGroup" order="4" attributeHierarchyActive="false" displayAttribute="false">
+        <descriptions defaultDescription="StrategicProductGroup"/>
+        <keyMapping columnObjectName="Stock_Totals" columnName="StrategicProductGroup"/>
+      </attribute>
+      <attribute id="CM_Team" order="5" attributeHierarchyActive="false" displayAttribute="false">
+        <descriptions defaultDescription="CM_Team"/>
+        <keyMapping columnObjectName="Stock_Totals" columnName="CM_Team"/>
+      </attribute>
+      <attribute id="XSiteStatus" order="6" attributeHierarchyActive="false" displayAttribute="false">
+        <descriptions defaultDescription="XSiteStatus"/>
+        <keyMapping columnObjectName="Stock_Totals" columnName="XSiteStatus"/>
+      </attribute>
+      <attribute id="Family" order="7" attributeHierarchyActive="false" displayAttribute="false">
+        <descriptions defaultDescription="Family"/>
+        <keyMapping columnObjectName="Stock_Totals" columnName="Family"/>
+      </attribute>
+      <attribute id="Category" order="8" attributeHierarchyActive="false" displayAttribute="false">
+        <descriptions defaultDescription="Category"/>
+        <keyMapping columnObjectName="Stock_Totals" columnName="Category"/>
+      </attribute>
+      <attribute id="SubCategory" order="9" attributeHierarchyActive="false" displayAttribute="false">
+        <descriptions defaultDescription="SubCategory"/>
+        <keyMapping columnObjectName="Stock_Totals" columnName="SubCategory"/>
+      </attribute>
+      <attribute id="BaseCategory" order="10" attributeHierarchyActive="false" displayAttribute="false">
+        <descriptions defaultDescription="BaseCategory"/>
+        <keyMapping columnObjectName="Stock_Totals" columnName="BaseCategory"/>
+      </attribute>
+      <attribute id="BusinessModel" order="11" attributeHierarchyActive="false" displayAttribute="false">
+        <descriptions defaultDescription="BusinessModel"/>
+        <keyMapping columnObjectName="Stock_Totals" columnName="BusinessModel"/>
+      </attribute>
+      <attribute id="PLANT" order="12" attributeHierarchyActive="false" displayAttribute="false" keepFlag="true" transparentFilter="false">
+        <descriptions defaultDescription="PLANT"/>
+        <keyMapping columnObjectName="Stock_Totals" columnName="PLANT"/>
+      </attribute>
+      <attribute id="STOCKTYPE" order="13" attributeHierarchyActive="false" displayAttribute="false" transparentFilter="false">
+        <descriptions defaultDescription="STOCKTYPE"/>
+        <keyMapping columnObjectName="Stock_Totals" columnName="STOCKTYPE"/>
+      </attribute>
+      <attribute id="BASE_UOM" order="14" attributeHierarchyActive="false" displayAttribute="false" transparentFilter="false">
+        <descriptions defaultDescription="BASE_UOM"/>
+        <keyMapping columnObjectName="Stock_Totals" columnName="BASE_UOM"/>
+      </attribute>
+      <attribute id="PurchasingGroup" order="23" attributeHierarchyActive="false" displayAttribute="false">
+        <descriptions defaultDescription="PurchasingGroup"/>
+        <keyMapping columnObjectName="Stock_Totals" columnName="PurchasingGroup"/>
+      </attribute>
+      <attribute id="RegularVendor" order="24" attributeHierarchyActive="false" displayAttribute="false">
+        <descriptions defaultDescription="RegularVendor"/>
+        <keyMapping columnObjectName="Stock_Totals" columnName="RegularVendor"/>
+      </attribute>
+    </attributes>
+    <calculatedAttributes>
+      <calculatedAttribute id="NetStockExists" hidden="false" order="17" semanticType="empty" attributeHierarchyActive="false" displayAttribute="false">
+        <descriptions defaultDescription="NetStockExists"/>
+        <keyCalculation datatype="VARCHAR" expressionLanguage="SQL" length="1">
+          <formula>case when &quot;NetStock&quot; > 0 THEN 'Y' else 'N' END&#xD;
+</formula>
+        </keyCalculation>
+      </calculatedAttribute>
+      <calculatedAttribute id="OptimalStockExists" hidden="false" order="19" semanticType="empty" attributeHierarchyActive="false" displayAttribute="false">
+        <descriptions defaultDescription="OptimalStockExists"/>
+        <keyCalculation datatype="VARCHAR" expressionLanguage="COLUMN_ENGINE" length="1">
+          <formula>if(&quot;OptimalStock&quot;>0,'Y','N')</formula>
+        </keyCalculation>
+      </calculatedAttribute>
+      <calculatedAttribute id="StockAvailable" hidden="false" order="21" semanticType="empty" attributeHierarchyActive="false" displayAttribute="false">
+        <descriptions defaultDescription="StockAvailable"/>
+        <keyCalculation datatype="VARCHAR" expressionLanguage="COLUMN_ENGINE" length="1">
+          <formula>if(&quot;NetStock&quot;>0 AND &quot;OptimalStock&quot;>0,'Y','N')</formula>
+        </keyCalculation>
+      </calculatedAttribute>
+    </calculatedAttributes>
+    <privateDataFoundation>
+      <tableProxies/>
+      <joins/>
+      <layout>
+        <shapes/>
+      </layout>
+    </privateDataFoundation>
+    <baseMeasures>
+      <measure id="NetStock" order="15" semanticType="quantity" aggregationType="sum" measureType="quantity">
+        <descriptions defaultDescription="NetStock"/>
+        <unitCurrencyAttribute attributeName="BASE_UOM"/>
+        <measureMapping columnObjectName="Stock_Totals" columnName="AugStock"/>
+      </measure>
+      <measure id="OptimalStock" order="16" semanticType="quantity" aggregationType="sum" measureType="quantity">
+        <descriptions defaultDescription="OptimalStock"/>
+        <unitCurrencyAttribute attributeName="BASE_UOM"/>
+        <measureMapping columnObjectName="Stock_Totals" columnName="AugOptStock"/>
+      </measure>
+    </baseMeasures>
+    <calculatedMeasures>
+      <measure id="NetStockExistsCount" hidden="false" order="18" aggregationType="sum" measureType="simple" datatype="DECIMAL" expressionLanguage="COLUMN_ENGINE" length="17" scale="4">
+        <descriptions defaultDescription="NetStockExistsCount"/>
+        <formula>if(&quot;NetStockExists&quot;='Y',1,0)</formula>
+      </measure>
+      <measure id="OptimalStockExistsCount" hidden="false" order="20" aggregationType="sum" measureType="simple" datatype="DECIMAL" expressionLanguage="COLUMN_ENGINE" length="17" scale="4">
+        <descriptions defaultDescription="OptimalStockExists"/>
+        <formula>if(&quot;OptimalStockExists&quot;='Y',1,0)</formula>
+      </measure>
+      <measure id="StockAvailableCount" hidden="false" order="22" aggregationType="sum" measureType="simple" datatype="DECIMAL" expressionLanguage="COLUMN_ENGINE" length="17" scale="4">
+        <descriptions defaultDescription="StockAvailable"/>
+        <formula>if(&quot;StockAvailable&quot;='Y',1,0)</formula>
+      </measure>
+    </calculatedMeasures>
+    <restrictedMeasures/>
+    <localDimensions/>
+  </logicalModel>
+  <layout>
+    <shapes>
+      <shape expanded="true" modelObjectName="Output" modelObjectNameSpace="MeasureGroup">
+        <upperLeftCorner x="252" y="87"/>
+        <rectangleSize height="0" width="0"/>
+      </shape>
+      <shape expanded="true" modelObjectName="Dates" modelObjectNameSpace="CalculationView">
+        <upperLeftCorner x="176" y="515"/>
+        <rectangleSize height="-1" width="-1"/>
+      </shape>
+      <shape expanded="true" modelObjectName="Closings" modelObjectNameSpace="CalculationView">
+        <upperLeftCorner x="324" y="830"/>
+        <rectangleSize height="-1" width="-1"/>
+      </shape>
+      <shape expanded="true" modelObjectName="Filter" modelObjectNameSpace="CalculationView">
+        <upperLeftCorner x="210" y="720"/>
+        <rectangleSize height="0" width="0"/>
+      </shape>
+      <shape expanded="true" modelObjectName="CharacteristicCombinations" modelObjectNameSpace="CalculationView">
+        <upperLeftCorner x="176" y="611"/>
+        <rectangleSize height="-1" width="-1"/>
+      </shape>
+      <shape expanded="true" modelObjectName="Material_Master_Attr" modelObjectNameSpace="CalculationView">
+        <upperLeftCorner x="22" y="611"/>
+        <rectangleSize height="-1" width="-1"/>
+      </shape>
+      <shape expanded="true" modelObjectName="CharComb_MATGEN" modelObjectNameSpace="CalculationView">
+        <upperLeftCorner x="22" y="515"/>
+        <rectangleSize height="0" width="0"/>
+      </shape>
+      <shape expanded="true" modelObjectName="Date_Char_Combinations" modelObjectNameSpace="CalculationView">
+        <upperLeftCorner x="100" y="409"/>
+        <rectangleSize height="-1" width="-1"/>
+      </shape>
+      <shape expanded="true" modelObjectName="Movements" modelObjectNameSpace="CalculationView">
+        <upperLeftCorner x="484" y="611"/>
+        <rectangleSize height="-1" width="-1"/>
+      </shape>
+      <shape expanded="true" modelObjectName="DailyMovements" modelObjectNameSpace="CalculationView">
+        <upperLeftCorner x="484" y="515"/>
+        <rectangleSize height="-1" width="-1"/>
+      </shape>
+      <shape expanded="true" modelObjectName="Closing_Stocks" modelObjectNameSpace="CalculationView">
+        <upperLeftCorner x="330" y="515"/>
+        <rectangleSize height="-1" width="-1"/>
+      </shape>
+      <shape expanded="true" modelObjectName="Closing_and_movements" modelObjectNameSpace="CalculationView">
+        <upperLeftCorner x="391" y="415"/>
+        <rectangleSize height="102" width="201"/>
+      </shape>
+      <shape expanded="true" modelObjectName="MovementsPerDateInclZeroMoveDates" modelObjectNameSpace="CalculationView">
+        <upperLeftCorner x="120" y="342"/>
+        <rectangleSize height="46" width="205"/>
+      </shape>
+      <shape expanded="true" modelObjectName="Aggr_Closing_and_movements" modelObjectNameSpace="CalculationView">
+        <upperLeftCorner x="360" y="342"/>
+        <rectangleSize height="-1" width="-1"/>
+      </shape>
+      <shape expanded="true" modelObjectName="Intermediatiate_Stock_Calculation" modelObjectNameSpace="CalculationView">
+        <upperLeftCorner x="252" y="243"/>
+        <rectangleSize height="-1" width="-1"/>
+      </shape>
+      <shape expanded="true" modelObjectName="Stock_Totals" modelObjectNameSpace="CalculationView">
+        <upperLeftCorner x="252" y="165"/>
+        <rectangleSize height="-1" width="-1"/>
+      </shape>
+    </shapes>
+  </layout>
+</Calculation:scenario>
