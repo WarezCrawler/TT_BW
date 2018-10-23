@@ -1,0 +1,142 @@
+FUNCTION ZCE_SSS_DATE_01.
+*"----------------------------------------------------------------------
+*"*"Local Interface:
+*"  IMPORTING
+*"     REFERENCE(I_STEP) TYPE  I
+*"     REFERENCE(I_VNAM) TYPE  RSZGLOBV-VNAM
+*"     REFERENCE(I_VARTYP) TYPE  RSZGLOBV-VARTYP
+*"     REFERENCE(I_IOBJNM) TYPE  RSZGLOBV-IOBJNM
+*"     REFERENCE(I_S_COB_PRO) TYPE  RSD_S_COB_PRO
+*"     REFERENCE(I_S_RKB1D) TYPE  RSR_S_RKB1D
+*"     REFERENCE(I_PERIV) TYPE  RRO01_S_RKB1F-PERIV
+*"     REFERENCE(I_T_VAR_RANGE) TYPE  RRS0_T_VAR_RANGE
+*"  EXPORTING
+*"     REFERENCE(C_T_RANGE) TYPE  RSR_T_RANGESID
+*"     REFERENCE(C_NO_SCREEN) TYPE  RS_BOOL
+*"     REFERENCE(C_CHECK_AGAIN) TYPE  RS_BOOL
+*"     REFERENCE(C_S_CUSTOMER) TYPE  RRO04_S_CUSTOMER
+*"----------------------------------------------------------------------
+
+
+*--------------------------------------------------------------------*
+* This Exit variable is intended to get value from reference
+* variable
+*--------------------------------------------------------------------*
+
+*The customer exit for variables is called three times maximally.
+*These three steps are called under I_STEP:
+*
+*1. The first step (I_STEP = 1) is before the processing of the variable pop-up and gets
+*called for every variable of the processing type “customer exit”. You can use this
+*step to fill your variable with default values.
+*
+*2. The second step (I_STEP = 2) is called after the processing of the variable pop-up.
+*This step is called only for those variables that are not marked as “ready for input”
+*and are set to “mandatory variable entry”.
+*
+*3. The third step (I_STEP = 3) is called after all variable processing and gets called
+*only once and not per variable. Here you can validate the user entries
+
+****************************************************HEADER INFORMATION****************************************************
+**DEVELOPER : ABP
+**TRANSPORT : BWDK907245
+**First Release : 2018-10-15( YYY-MM-DD)
+**-----------------------------------------------------------------------
+
+* Begin Of Variable defiantion**
+*---------------------------------------------------------------------------------------------------------------------------------
+TYPES: Variable(30) TYPE C.
+TYPES: BEGIN OF TY_PLANT ,
+       PLANT TYPE /BIC/OIZFORG ,
+       END OF TY_PLANT.
+TYPES: BEGIN OF TY_ZFORG,
+       /BIC/ZFORG TYPE /BIC/OIZFORG,
+       RT_LOPDAT TYPE /BI0/OIRT_LOPDAT,
+       RT_LCLDAT TYPE /BI0/OIRT_LCLDAT,
+       END OF TY_ZFORG.
+
+DATA: SourceVar TYPE RRRANGEEXIT,
+      TargetVariable TYPE RSR_S_RANGESID,
+      InCompVar TYPE TABLE OF Variable,   "Reference Table of Variables to source comparable period from
+      WA_compvar TYPE Variable,
+      InCurrVar TYPE TABLE OF Variable,   "Reference Table of Variables to source current period from
+      WA_CURRVAR TYPE Variable,
+      CompVar TYPE Variable,
+      CurrVar TYPE Variable,
+      L_S_RANGE TYPE RSR_T_RANGESID,
+      COMPDATEFROM TYPE SY-DATUM,
+      COMPDATETO TYPE SY-DATUM,
+      CURRDATEFROM TYPE SY-DATUM,
+      CURRDATETO TYPE SY-DATUM,
+      LT_PLANT TYPE STANDARD TABLE OF TY_PLANT,
+      LT_ZFORG TYPE STANDARD TABLE OF TY_ZFORG.
+
+FIELD-SYMBOLS: <WA_ZFORG> TYPE TY_ZFORG.
+*      LoopVar TYPE Variable.
+*Defination ends***
+*------------------------------------------------------------------------------------------------------------------------------------**
+
+
+
+*after the processing of the variable pop-up
+IF I_STEP = 2.
+* If we experience problems with the order the variables are sorted, this can stem from ABAP changing the order to optimize memory.
+* We do not expect it to happen, so we keep this implementation until proven otherwise
+  "Comparable period interval (Date)
+  Append 'ZCOMPARABLE_PERIOD' TO InCompVar.
+
+
+  "Current Period interval (Date)
+  Append 'ZV_FDW' TO InCurrVar.
+
+
+  LOOP AT incompvar into WA_compvar.
+      read table I_T_VAR_RANGE INTO SourceVar with key vnam = WA_compvar.                   "'SM_TODATE'.
+      "If we find the variable, then process it into this variable value. Else continue next.
+         IF sy-subrc = 0.
+           COMPDATEFROM = SourceVar-LOW.
+           COMPDATETO = SourceVar-HIGH.
+           EXIT.
+         ENDIF.
+  ENDLOOP.
+
+LOOP AT InCurrVar into WA_CURRVAR.
+   read table I_T_VAR_RANGE INTO SourceVar with key vnam = WA_CURRVAR.                   "'SM_TODATE'.
+      "If we find the variable, then process it into this variable value. Else continue next.
+      IF sy-subrc = 0.
+        CURRDATEFROM = SourceVar-LOW.
+        CURRDATETO = SourceVar-HIGH.
+        EXIT.
+      ENDIF.
+ENDLOOP.
+* Selecting all plants / ZFORG where the Above Current period and Comparison period resides within the Opening and Closing date of the stores
+* As ZFORG consist the Plants / Stores and other Orgunits it is important to get the list against the right validation with 0PLANT
+**-------------------------------------------------------------------------------------------------------------------------------------------------*
+SELECT PLANT from /BI0/PPLANT into TABLE LT_PLANT
+  WHERE OBJVERS = 'A'.
+
+SELECT /BIC/ZFORG RT_LOPDAT RT_LCLDAT from /BIC/PZFORG into table LT_ZFORG
+  FOR ALL ENTRIES IN LT_PLANT
+  WHERE OBJVERS = 'A' AND
+        /BIC/ZFORG = LT_PLANT-PLANT AND
+        ( RT_LOPDAT LE COMPDATEFROM AND RT_LOPDAT LE CURRDATEFROM ) AND
+        ( RT_LCLDAT GE COMPDATETO AND RT_LCLDAT GE CURRDATETO ) .
+* Selection ends.
+*----------------------------------------------------------------------------------------------------------------------------------------------------**
+
+*Populate the export range table with all the plants from above selection
+*----------------------------------------------------------------------------------------------------------------------------------------------------**
+IF NOT LT_ZFORG IS INITIAL.
+  LOOP AT LT_ZFORG ASSIGNING <WA_ZFORG>.
+    TargetVariable-LOW = <WA_ZFORG>-/BIC/ZFORG.
+    TargetVariable-SIGN = 'I'.
+    TargetVariable-OPT = 'EQ'.
+    APPEND  TargetVariable TO C_T_RANGE.
+    CLEAR TargetVariable.
+  ENDLOOP.
+ENDIF.
+*Range table population ends
+**----------------------------------------------------------------------------------------------------------------------------------------------------**
+ENDIF.
+
+ENDFUNCTION.
